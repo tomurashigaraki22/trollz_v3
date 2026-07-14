@@ -10,6 +10,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Catch nested copies too (e.g. build caches inside .claude/worktrees/*)
+    "**/.next/**",
+    "**/node_modules/**",
+    ".claude/**",
   ]),
 ]);
 
