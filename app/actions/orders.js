@@ -2,16 +2,16 @@
 
 import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/session";
-import { createOrder, cancelOrder } from "@/lib/queries/orders";
+import { createPendingOrder, cancelOrder } from "@/lib/queries/orders";
+import { initializePayment } from "@/lib/flutterwave";
+import { SITE_URL } from "@/lib/site";
 
 export async function placeOrderAction({ addressId, addressText, items, total }) {
   const user = await requireUser();
 
-  // Payment is simulated (no real Flutterwave integration yet) — the order
-  // itself is a real row, just with a placeholder transaction reference.
-  const transactionId = `demo_txn_${Date.now()}`;
+  const transactionId = `TS_${Date.now()}_${user.id}`;
 
-  const { orderId, tracking } = await createOrder({
+  const { tracking } = await createPendingOrder({
     userId: user.id,
     addressId,
     addressText,
@@ -21,8 +21,20 @@ export async function placeOrderAction({ addressId, addressText, items, total })
     transactionId,
   });
 
-  revalidatePath("/account/orders");
-  return { ok: true, orderId, tracking };
+  const payment = await initializePayment({
+    txRef: transactionId,
+    amount: total,
+    email: user.email,
+    name: user.name,
+    phone: user.phone,
+    redirectUrl: `${SITE_URL}/checkout/callback`,
+  });
+
+  if (!payment.ok) {
+    return { ok: false, error: payment.error };
+  }
+
+  return { ok: true, tracking, paymentLink: payment.link };
 }
 
 export async function cancelOrderAction(orderId) {

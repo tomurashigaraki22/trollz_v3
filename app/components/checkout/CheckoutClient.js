@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { Lock, ShieldCheck } from "lucide-react";
 import Section from "../ui/Section";
 import Card from "../ui/Card";
@@ -33,8 +32,7 @@ function addressToText(address) {
 }
 
 export default function CheckoutClient({ user, addresses }) {
-  const router = useRouter();
-  const { lines, subtotal, shippingFee, total, itemCount, clearCart } = useCart();
+  const { lines, subtotal, shippingFee, total } = useCart();
 
   const [selectedAddressId, setSelectedAddressId] = useState(
     addresses.find((address) => address.is_default)?.id ?? addresses[0]?.id ?? null
@@ -43,6 +41,7 @@ export default function CheckoutClient({ user, addresses }) {
   const [newAddress, setNewAddress] = useState(null);
   const [saveNewAddress, setSaveNewAddress] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [paymentError, setPaymentError] = useState("");
 
   const shippingAddress = useMemo(() => {
     if (addingNew) return newAddress;
@@ -61,33 +60,31 @@ export default function CheckoutClient({ user, addresses }) {
   async function handlePayNow() {
     if (!shippingAddress) return;
     setSubmitting(true);
+    setPaymentError("");
 
-    // Simulates redirecting to Flutterwave's hosted checkout and waiting for
-    // the payment callback — replaced with a real Flutterwave Standard/
-    // Inline integration + server-side transaction verification in a later
-    // phase. We deliberately never touch raw card data here or in that
-    // future pass. The order itself is a real row from this point on.
-    setTimeout(async () => {
-      const { tracking } = await placeOrderAction({
-        addressId: !addingNew ? selectedAddressId : null,
-        addressText: addressToText(shippingAddress),
-        items: lines.map((line) => ({
-          productId: line.product.id,
-          name: line.product.item,
-          qty: line.qty,
-          price: line.unitPrice,
-        })),
-        total,
-      });
+    // Creates a real pending order, then hands off to Flutterwave's hosted
+    // checkout. The order is only marked paid — and stock decremented — once
+    // /checkout/callback verifies the transaction server-side with
+    // Flutterwave. We never touch raw card data ourselves.
+    const result = await placeOrderAction({
+      addressId: !addingNew ? selectedAddressId : null,
+      addressText: addressToText(shippingAddress),
+      items: lines.map((line) => ({
+        productId: line.product.id,
+        name: line.product.item,
+        qty: line.qty,
+        price: line.unitPrice,
+      })),
+      total,
+    });
 
-      await clearCart();
-      const query = new URLSearchParams({
-        tracking,
-        total: String(total),
-        items: String(itemCount),
-      });
-      router.push(`/order-confirmation?${query.toString()}`);
-    }, 1400);
+    if (!result.ok) {
+      setSubmitting(false);
+      setPaymentError(result.error);
+      return;
+    }
+
+    window.location.href = result.paymentLink;
   }
 
   if (lines.length === 0) {
@@ -221,6 +218,8 @@ export default function CheckoutClient({ user, addresses }) {
             <span>Total</span>
             <span>{formatNaira(total)}</span>
           </div>
+
+          {paymentError && <p className="mt-3 text-sm text-danger">{paymentError}</p>}
 
           <Button
             type="button"

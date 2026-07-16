@@ -14,6 +14,7 @@ import {
 } from "@/lib/queries/admin-products";
 import { updateOrderStatus } from "@/lib/queries/orders";
 import { updateSupportMessageStatus, deleteSupportMessage } from "@/lib/queries/support";
+import { createSeller, setSellerStatus, deleteSeller } from "@/lib/queries/sellers";
 
 export async function adminLoginAction(email, password) {
   const user = await findUserByEmail(email);
@@ -98,4 +99,23 @@ export async function searchProductsForFlashSaleAction(term) {
   await requireAdmin();
   if (!term.trim()) return [];
   return searchProductsForAdmin(term.trim());
+}
+
+export async function createSellerAction(seller) {
+  await requireAdmin();
+  const result = await createSeller(seller);
+  revalidatePath("/admin/sellers");
+  return result;
+}
+
+export async function setSellerStatusAction(id, status) {
+  await requireAdmin();
+  await setSellerStatus(id, status);
+  revalidatePath("/admin/sellers");
+}
+
+export async function deleteSellerAction(id) {
+  await requireAdmin();
+  await deleteSeller(id);
+  revalidatePath("/admin/sellers");
 }
