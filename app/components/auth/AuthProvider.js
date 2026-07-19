@@ -4,24 +4,29 @@
 // MySQL `users` table). The server resolves the session in the root layout
 // and passes the initial user down as a prop — no localStorage, no client-
 // side password handling. Mutations call Server Actions, which update the
-// httpOnly session cookie server-side; router.refresh() then re-runs the
-// Server Component tree so it reflects the new session.
+// httpOnly session cookie server-side; the caller then navigates (router.push)
+// to a page that reads the fresh session on its own.
+//
+// Deliberately NOT calling router.refresh() here: callers immediately do a
+// router.push() right after login/register succeeds, and firing refresh()
+// and push() back-to-back races the Next.js router cache — refresh()'s
+// in-flight re-render of the *current* route can cancel the pending push(),
+// silently stranding the user on the login/register page even though the
+// account was created/authenticated. The destination page already fetches
+// its own fresh session server-side on navigation, so refresh() is redundant.
 
 import { createContext, useContext, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { loginAction, registerAction, logoutAction } from "@/app/actions/auth";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children, initialUser = null }) {
   const [user, setUser] = useState(initialUser);
-  const router = useRouter();
 
   const login = async (email, password) => {
     const result = await loginAction(email, password);
     if (result.ok) {
       setUser(result.user);
-      router.refresh();
     }
     return result;
   };
@@ -30,7 +35,6 @@ export function AuthProvider({ children, initialUser = null }) {
     const result = await registerAction(payload);
     if (result.ok) {
       setUser(result.user);
-      router.refresh();
     }
     return result;
   };
@@ -38,7 +42,6 @@ export function AuthProvider({ children, initialUser = null }) {
   const logout = async () => {
     await logoutAction();
     setUser(null);
-    router.refresh();
   };
 
   const value = useMemo(
