@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import AuthCard from "../components/auth/AuthCard";
@@ -13,14 +13,22 @@ const initialForm = {
   phone: "",
   password: "",
   confirmPassword: "",
+  ref: "",
 };
 
 export default function RegisterPage() {
   const { register } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const ref = searchParams.get("ref");
+  const refParam = searchParams.get("ref");
   const [form, setForm] = useState(initialForm);
+
+  useEffect(() => {
+    if (refParam) {
+      setForm((prev) => ({ ...prev, ref: refParam }));
+    }
+  }, [refParam]);
+
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -42,7 +50,7 @@ export default function RegisterPage() {
     }
 
     setSubmitting(true);
-    const result = await register({ ...form, ref });
+    const result = await register({ ...form });
     setSubmitting(false);
 
     if (!result.ok) {
@@ -136,6 +144,19 @@ export default function RegisterPage() {
             type="password"
             required
             value={form.confirmPassword}
+            onChange={handleChange}
+            className="mt-2 block w-full rounded-lg border border-ink-200 px-3 py-2.5 text-sm focus:border-brand-500 focus:outline-none"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="ref" className="text-sm font-medium text-ink-800">
+            Referral ID (Optional)
+          </label>
+          <input
+            id="ref"
+            name="ref"
+            value={form.ref}
             onChange={handleChange}
             className="mt-2 block w-full rounded-lg border border-ink-200 px-3 py-2.5 text-sm focus:border-brand-500 focus:outline-none"
           />
