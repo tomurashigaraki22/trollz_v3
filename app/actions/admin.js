@@ -15,6 +15,8 @@ import {
 import { updateOrderStatus } from "@/lib/queries/orders";
 import { updateSupportMessageStatus, deleteSupportMessage } from "@/lib/queries/support";
 import { createSeller, setSellerStatus, deleteSeller } from "@/lib/queries/sellers";
+import { updateReferralSettings } from "@/lib/queries/referrals";
+import { updateSellerApplicationStatus } from "@/lib/queries/sellerApplications";
 
 export async function adminLoginAction(email, password) {
   const user = await findUserByEmail(email);
@@ -118,4 +120,17 @@ export async function deleteSellerAction(id) {
   await requireAdmin();
   await deleteSeller(id);
   revalidatePath("/admin/sellers");
+}
+
+export async function updateReferralSettingsAction(settings) {
+  await requireAdmin();
+  await updateReferralSettings(settings);
+  revalidatePath("/admin/referrals");
+}
+
+export async function updateSellerApplicationAction(id, { status, remarks }) {
+  const admin = await requireAdmin();
+  await updateSellerApplicationStatus(id, { status, remarks, verifiedBy: admin.name });
+  revalidatePath("/admin/seller-applications");
+  revalidatePath(`/admin/seller-applications/${id}`);
 }

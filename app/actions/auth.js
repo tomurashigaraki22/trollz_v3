@@ -8,6 +8,7 @@ import {
   createPasswordResetToken,
   resetPasswordWithToken,
 } from "@/lib/queries/users";
+import { findUserIdByReferralCode, setReferredBy } from "@/lib/queries/referrals";
 
 function sanitize(user) {
   if (!user) return null;
@@ -33,10 +34,17 @@ export async function loginAction(email, password) {
   return { ok: true, user: sanitize(user) };
 }
 
-export async function registerAction({ name, email, phone, password }) {
+export async function registerAction({ name, email, phone, password, ref }) {
   const result = await createUser({ name, email, phone, password });
   if (!result.ok) {
     return result;
+  }
+
+  if (ref) {
+    const inviterId = await findUserIdByReferralCode(ref);
+    if (inviterId) {
+      await setReferredBy(result.id, inviterId);
+    }
   }
 
   const session = await getSession();

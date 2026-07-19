@@ -10,6 +10,7 @@ import {
   Settings,
   Headset,
   LogOut,
+  Gift,
 } from "lucide-react";
 import { useAuth } from "../auth/AuthProvider";
 
@@ -18,6 +19,7 @@ const links = [
   { href: "/account/orders", label: "My Orders", icon: PackageSearch },
   { href: "/account/addresses", label: "Shipping Addresses", icon: MapPin },
   { href: "/account/payment-methods", label: "Payment Methods", icon: CreditCard },
+  { href: "/account/referrals", label: "Invite & Earn", icon: Gift },
   { href: "/account/settings", label: "Settings", icon: Settings },
   { href: "/account/help", label: "Help & Support", icon: Headset },
 ];

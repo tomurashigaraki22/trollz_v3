@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Lock, ShieldCheck } from "lucide-react";
 import Section from "../ui/Section";
 import Card from "../ui/Card";
@@ -31,7 +32,8 @@ function addressToText(address) {
     .join(", ");
 }
 
-export default function CheckoutClient({ user, addresses }) {
+export default function CheckoutClient({ user, addresses, creditBalance = 0, creditValueNgn = 0 }) {
+  const router = useRouter();
   const { lines, subtotal, shippingFee, total } = useCart();
 
   const [selectedAddressId, setSelectedAddressId] = useState(
@@ -42,6 +44,12 @@ export default function CheckoutClient({ user, addresses }) {
   const [saveNewAddress, setSaveNewAddress] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [paymentError, setPaymentError] = useState("");
+  const [useCredits, setUseCredits] = useState(false);
+
+  const availableCreditValue = creditBalance * creditValueNgn;
+  const creditDiscount = useCredits ? Math.min(availableCreditValue, total) : 0;
+  const creditsToApply = creditValueNgn > 0 ? creditDiscount / creditValueNgn : 0;
+  const amountDue = total - creditDiscount;
 
   const shippingAddress = useMemo(() => {
     if (addingNew) return newAddress;
@@ -76,11 +84,19 @@ export default function CheckoutClient({ user, addresses }) {
         price: line.unitPrice,
       })),
       total,
+      creditsToApply,
     });
 
     if (!result.ok) {
       setSubmitting(false);
       setPaymentError(result.error);
+      return;
+    }
+
+    if (!result.paymentLink) {
+      // Fully covered by store credits — no Flutterwave hop needed.
+      const query = new URLSearchParams({ tracking: result.tracking, total: "0", items: "0" });
+      router.push(`/order-confirmation?${query.toString()}`);
       return;
     }
 
@@ -213,10 +229,34 @@ export default function CheckoutClient({ user, addresses }) {
               <span>Shipping</span>
               <span>{shippingFee === 0 ? "Free" : formatNaira(shippingFee)}</span>
             </div>
+            {creditDiscount > 0 && (
+              <div className="flex justify-between text-success">
+                <span>Store credit applied</span>
+                <span>-{formatNaira(creditDiscount)}</span>
+              </div>
+            )}
           </div>
+
+          {availableCreditValue > 0 && (
+            <label className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-ink-100 bg-ink-50 px-3 py-2.5 text-sm">
+              <span className="flex items-center gap-2 text-ink-700">
+                <input
+                  type="checkbox"
+                  checked={useCredits}
+                  onChange={(event) => setUseCredits(event.target.checked)}
+                  className="h-4 w-4 rounded border-ink-300 accent-brand-500"
+                />
+                Use store credits
+              </span>
+              <span className="font-medium text-ink-900">
+                {creditBalance.toLocaleString()} pts ({formatNaira(availableCreditValue)})
+              </span>
+            </label>
+          )}
+
           <div className="mt-4 flex justify-between border-t border-ink-100 pt-4 text-base font-bold text-ink-900">
             <span>Total</span>
-            <span>{formatNaira(total)}</span>
+            <span>{formatNaira(amountDue)}</span>
           </div>
 
           {paymentError && <p className="mt-3 text-sm text-danger">{paymentError}</p>}
@@ -229,7 +269,11 @@ export default function CheckoutClient({ user, addresses }) {
             onClick={handlePayNow}
           >
             <Lock className="h-4 w-4" />
-            {submitting ? "Redirecting to Flutterwave..." : "Pay with Flutterwave"}
+            {submitting
+              ? "Processing..."
+              : amountDue === 0
+                ? "Place Order (Paid with Credits)"
+                : "Pay with Flutterwave"}
           </Button>
 
           <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-ink-400">

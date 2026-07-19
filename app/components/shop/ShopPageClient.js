@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { SlidersHorizontal, ChevronLeft, ChevronRight } from "lucide-react";
+import { SlidersHorizontal, ChevronLeft, ChevronRight, Zap } from "lucide-react";
 import ShopFilters from "./ShopFilters";
 import ProductCard from "../ui/ProductCard";
 
 const SORT_OPTIONS = [
   { value: "featured", label: "Featured" },
+  { value: "newest", label: "New Arrivals" },
   { value: "price-asc", label: "Price: Low to High" },
   { value: "price-desc", label: "Price: High to Low" },
   { value: "rating", label: "Top Rated" },
@@ -21,11 +22,13 @@ export default function ShopPageClient({
   sort,
   page,
   totalPages,
+  tab = "all",
 }) {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const isFlash = tab === "flash";
 
   function updateParam(key, value) {
     const next = new URLSearchParams(searchParams.toString());
@@ -45,37 +48,72 @@ export default function ShopPageClient({
     router.push(`${pathname}?${next.toString()}`);
   }
 
+  function switchTab(nextTab) {
+    const next = new URLSearchParams();
+    if (nextTab === "flash") next.set("tab", "flash");
+    const query = next.toString();
+    router.push(query ? `${pathname}?${query}` : pathname);
+  }
+
   return (
-    <div className="grid grid-cols-1 gap-8 lg:grid-cols-[240px_1fr]">
-      <div className="hidden lg:block">
-        <ShopFilters categories={categories} selectedCategory={selectedCategory} maxPrice={maxPrice} />
-      </div>
+    <div className={isFlash ? "" : "grid grid-cols-1 gap-8 lg:grid-cols-[240px_1fr]"}>
+      {!isFlash && (
+        <div className="hidden lg:block">
+          <ShopFilters categories={categories} selectedCategory={selectedCategory} maxPrice={maxPrice} />
+        </div>
+      )}
 
       <div>
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-          <button
-            type="button"
-            onClick={() => setMobileFiltersOpen((open) => !open)}
-            className="flex items-center gap-2 rounded-full border border-ink-200 px-4 py-2 text-sm font-medium text-ink-700 lg:hidden"
-          >
-            <SlidersHorizontal className="h-4 w-4" />
-            Filters
-          </button>
+          <div className="flex items-center gap-2 rounded-full border border-ink-200 p-1">
+            <button
+              type="button"
+              onClick={() => switchTab("all")}
+              className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+                !isFlash ? "bg-ink-900 text-white" : "text-ink-600 hover:bg-ink-100"
+              }`}
+            >
+              All Products
+            </button>
+            <button
+              type="button"
+              onClick={() => switchTab("flash")}
+              className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+                isFlash ? "bg-brand-500 text-white" : "text-ink-600 hover:bg-ink-100"
+              }`}
+            >
+              <Zap className="h-3.5 w-3.5" />
+              Flash Sale
+            </button>
+          </div>
 
-          <select
-            value={sort}
-            onChange={(event) => updateParam("sort", event.target.value)}
-            className="rounded-full border border-ink-200 bg-white px-4 py-2 text-sm text-ink-700 focus:border-brand-500 focus:outline-none"
-          >
-            {SORT_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+          {!isFlash && (
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setMobileFiltersOpen((open) => !open)}
+                className="flex items-center gap-2 rounded-full border border-ink-200 px-4 py-2 text-sm font-medium text-ink-700 lg:hidden"
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+                Filters
+              </button>
+
+              <select
+                value={sort}
+                onChange={(event) => updateParam("sort", event.target.value)}
+                className="rounded-full border border-ink-200 bg-white px-4 py-2 text-sm text-ink-700 focus:border-brand-500 focus:outline-none"
+              >
+                {SORT_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
 
-        {mobileFiltersOpen && (
+        {!isFlash && mobileFiltersOpen && (
           <div className="mb-6 rounded-2xl border border-ink-100 p-4 lg:hidden">
             <ShopFilters categories={categories} selectedCategory={selectedCategory} maxPrice={maxPrice} />
           </div>
@@ -117,7 +155,9 @@ export default function ShopPageClient({
           </>
         ) : (
           <div className="rounded-2xl border border-dashed border-ink-200 py-16 text-center text-sm text-ink-500">
-            No products match these filters. Try widening your search.
+            {isFlash
+              ? "No flash sale is running right now — check back soon."
+              : "No products match these filters. Try widening your search."}
           </div>
         )}
       </div>

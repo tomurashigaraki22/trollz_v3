@@ -3,6 +3,7 @@ import Section from "../components/ui/Section";
 import CheckoutClient from "../components/checkout/CheckoutClient";
 import { getCurrentUser } from "@/lib/session";
 import { getAddressesForUser } from "@/lib/queries/addresses";
+import { getUserCredits, getReferralSettings } from "@/lib/queries/referrals";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +12,13 @@ export default async function CheckoutPage({ searchParams }) {
   const paymentFailed = params?.payment === "failed";
 
   const user = await getCurrentUser();
-  const addresses = user ? await getAddressesForUser(user.id) : [];
+  const [addresses, creditBalance, referralSettings] = user
+    ? await Promise.all([
+        getAddressesForUser(user.id),
+        getUserCredits(user.id),
+        getReferralSettings(),
+      ])
+    : [[], 0, null];
 
   return (
     <>
@@ -24,7 +31,12 @@ export default async function CheckoutPage({ searchParams }) {
           </div>
         </Section>
       )}
-      <CheckoutClient user={user} addresses={addresses} />
+      <CheckoutClient
+        user={user}
+        addresses={addresses}
+        creditBalance={creditBalance}
+        creditValueNgn={referralSettings ? Number(referralSettings.credit_value_ngn) : 0}
+      />
     </>
   );
 }

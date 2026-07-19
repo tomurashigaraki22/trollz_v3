@@ -50,7 +50,7 @@ export default async function Hero() {
             Explore Collections
             <ArrowRight className="h-4 w-4" />
           </Button>
-          <Button href="/shop?filter=flash" variant="outline" size="lg" className="border-white/30 text-white hover:border-white hover:text-white">
+          <Button href="/shop?tab=flash" variant="outline" size="lg" className="border-white/30 text-white hover:border-white hover:text-white">
             View Flash Deals
           </Button>
         </div>

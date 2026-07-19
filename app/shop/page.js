@@ -2,7 +2,13 @@ import PageHero from "../components/ui/PageHero";
 import Section from "../components/ui/Section";
 import ShopPageClient from "../components/shop/ShopPageClient";
 import { slugify } from "@/lib/slugify";
-import { getProducts, getProductsCount, getTopLevelCategories } from "@/lib/queries/products";
+import {
+  getProducts,
+  getProductsCount,
+  getTopLevelCategories,
+  getFlashSaleProductsPage,
+  getFlashSaleProductsCount,
+} from "@/lib/queries/products";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +23,7 @@ export default async function ShopPage({ searchParams }) {
   const params = await searchParams;
   const categories = await getTopLevelCategories();
 
+  const tab = params?.tab === "flash" ? "flash" : "all";
   const categorySlug = typeof params?.category === "string" ? params.category : null;
   const matchedCategory = categories.find((category) => slugify(category.name) === categorySlug);
   const maxPrice = params?.maxPrice ? Number(params.maxPrice) : undefined;
@@ -25,10 +32,16 @@ export default async function ShopPage({ searchParams }) {
 
   const filters = { category: matchedCategory?.name, maxPrice, sort };
 
-  const [products, totalCount] = await Promise.all([
-    getProducts({ ...filters, limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE }),
-    getProductsCount(filters),
-  ]);
+  const [products, totalCount] =
+    tab === "flash"
+      ? await Promise.all([
+          getFlashSaleProductsPage({ limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE }),
+          getFlashSaleProductsCount(),
+        ])
+      : await Promise.all([
+          getProducts({ ...filters, limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE }),
+          getProductsCount(filters),
+        ]);
 
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
@@ -36,7 +49,7 @@ export default async function ShopPage({ searchParams }) {
     <>
       <PageHero
         eyebrow="Shop"
-        title={matchedCategory ? matchedCategory.name : "All Products"}
+        title={tab === "flash" ? "Flash Sale" : matchedCategory ? matchedCategory.name : "All Products"}
         description={`${totalCount.toLocaleString()} product${totalCount === 1 ? "" : "s"} available`}
       />
       <Section>
@@ -48,6 +61,7 @@ export default async function ShopPage({ searchParams }) {
           sort={sort}
           page={page}
           totalPages={totalPages}
+          tab={tab}
         />
       </Section>
     </>

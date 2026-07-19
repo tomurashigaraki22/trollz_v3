@@ -14,6 +14,8 @@ import {
   ExternalLink,
   Store,
   Image as ImageIcon,
+  Gift,
+  ShieldCheck,
 } from "lucide-react";
 import { adminLogoutAction } from "@/app/actions/admin";
 
@@ -23,7 +25,9 @@ const links = [
   { href: "/admin/products", label: "Products", icon: Package },
   { href: "/admin/categories", label: "Categories", icon: FolderTree },
   { href: "/admin/flash-sales", label: "Flash Sales", icon: Zap },
+  { href: "/admin/referrals", label: "Referrals & Credit", icon: Gift },
   { href: "/admin/sellers", label: "Sellers", icon: Store },
+  { href: "/admin/seller-applications", label: "Seller Applications", icon: ShieldCheck },
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/banner", label: "Homepage Banner", icon: ImageIcon },
   { href: "/admin/support", label: "Support Inbox", icon: Headset },

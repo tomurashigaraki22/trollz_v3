@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import AuthCard from "../components/auth/AuthCard";
 import Button from "../components/ui/Button";
 import { useAuth } from "../components/auth/AuthProvider";
@@ -18,6 +18,8 @@ const initialForm = {
 export default function RegisterPage() {
   const { register } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const ref = searchParams.get("ref");
   const [form, setForm] = useState(initialForm);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -40,7 +42,7 @@ export default function RegisterPage() {
     }
 
     setSubmitting(true);
-    const result = await register(form);
+    const result = await register({ ...form, ref });
     setSubmitting(false);
 
     if (!result.ok) {

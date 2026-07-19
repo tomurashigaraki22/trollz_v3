@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "port": 3000
+    },
+    {
+      "name": "trollz-seller-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "C:\\Users\\HP\\Desktop\\Projects\\trollz_seller", "run", "dev", "--", "-p", "3001"],
+      "port": 3001
     }
   ]
 }

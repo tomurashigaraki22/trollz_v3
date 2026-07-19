@@ -7,9 +7,9 @@ const columns = [
     title: "Shop",
     links: [
       { label: "All Products", href: "/shop" },
-      { label: "Flash Deals", href: "/shop?filter=flash" },
+      { label: "Flash Deals", href: "/shop?tab=flash" },
       { label: "Categories", href: "/shop" },
-      { label: "New Arrivals", href: "/shop?filter=new" },
+      { label: "New Arrivals", href: "/shop?sort=newest" },
     ],
   },
   {
@@ -25,6 +25,7 @@ const columns = [
     links: [
       { label: "Privacy Policy", href: "/privacy-policy" },
       { label: "Terms & Conditions", href: "/terms-and-conditions" },
+      { label: "Seller Agreement", href: "/seller-agreement" },
     ],
   },
 ];
