@@ -2,7 +2,7 @@ import { Gift, Users, Coins } from "lucide-react";
 import Card from "../../components/ui/Card";
 import InviteLinkCard from "../../components/account/InviteLinkCard";
 import { formatNaira } from "@/lib/mock/data";
-import { getCurrentUser } from "@/lib/session";
+import { requireUser } from "@/lib/session";
 import {
   ensureReferralCode,
   getReferralSettings,
@@ -14,7 +14,7 @@ import { SITE_URL } from "@/lib/site";
 export const dynamic = "force-dynamic";
 
 export default async function ReferralsPage() {
-  const user = await getCurrentUser();
+  const user = await requireUser();
   const [code, settings, credits, stats] = await Promise.all([
     ensureReferralCode(user.id),
     getReferralSettings(),

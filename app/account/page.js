@@ -3,7 +3,7 @@ import { PackageSearch, MapPin, CreditCard, ArrowRight } from "lucide-react";
 import Card from "../components/ui/Card";
 import { formatNaira } from "@/lib/mock/data";
 import { ORDER_STATUS_STYLES } from "@/lib/orderStatus";
-import { getCurrentUser } from "@/lib/session";
+import { requireUser } from "@/lib/session";
 import { getOrdersForUser } from "@/lib/queries/orders";
 import { getAddressesForUser } from "@/lib/queries/addresses";
 import { getPaymentMethodsForUser } from "@/lib/queries/paymentMethods";
@@ -11,7 +11,7 @@ import { getPaymentMethodsForUser } from "@/lib/queries/paymentMethods";
 export const dynamic = "force-dynamic";
 
 export default async function AccountOverviewPage() {
-  const user = await getCurrentUser();
+  const user = await requireUser();
   const [orders, addresses, paymentMethods] = await Promise.all([
     getOrdersForUser(user.id),
     getAddressesForUser(user.id),
