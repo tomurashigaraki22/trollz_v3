@@ -68,6 +68,11 @@ export default function Header() {
             <input
               type="search"
               name="hsearch"
+              autoCorrect="off"
+              autoCapitalize="none"
+              spellCheck={false}
+              enterKeyHint="search"
+              inputMode="search"
               placeholder="Search products..."
               className="w-full bg-transparent text-sm text-ink-800 placeholder:text-ink-400 focus:outline-none"
             />

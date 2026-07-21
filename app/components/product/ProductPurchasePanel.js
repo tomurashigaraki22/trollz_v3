@@ -118,39 +118,48 @@ export default function ProductPurchasePanel({ product }) {
 
       {error && <p className="text-sm text-danger">{error}</p>}
 
-      <div className="flex items-stretch gap-3 pt-2">
+      <div className="space-y-3 pt-2">
         <Button
           type="button"
           size="lg"
           disabled={!inStock}
           onClick={handleAddToCart}
-          className="min-w-0 flex-1"
+          className="w-full"
         >
           {added ? <Check className="h-4 w-4 shrink-0" /> : <ShoppingCart className="h-4 w-4 shrink-0" />}
           <span className="truncate">
             {!inStock ? "Out of Stock" : added ? "Added to Cart" : "Add to Cart"}
           </span>
         </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="lg"
-          aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
-          onClick={() => toggle(product.id)}
-          className={`w-13 shrink-0 px-0 ${wishlisted ? "border-brand-500 text-brand-500" : ""}`}
-        >
-          <Heart className="h-4 w-4" fill={wishlisted ? "currentColor" : "none"} />
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="lg"
-          aria-label={compared ? "Remove from comparison" : "Compare product"}
-          onClick={() => toggleCompare(product.id)}
-          className={`w-13 shrink-0 px-0 ${compared ? "border-brand-500 text-brand-500" : ""}`}
-        >
-          <GitCompare className="h-4 w-4" />
-        </Button>
+
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            type="button"
+            aria-pressed={wishlisted}
+            onClick={() => toggle(product.id)}
+            className={`flex min-h-12 items-center justify-center gap-2 rounded-full border px-3 text-sm font-semibold transition-colors ${
+              wishlisted
+                ? "border-brand-500 bg-brand-50 text-brand-600"
+                : "border-ink-200 text-ink-700 hover:border-brand-500 hover:text-brand-600"
+            }`}
+          >
+            <Heart className="h-4 w-4 shrink-0" fill={wishlisted ? "currentColor" : "none"} />
+            <span className="truncate">{wishlisted ? "Saved" : "Save"}</span>
+          </button>
+          <button
+            type="button"
+            aria-pressed={compared}
+            onClick={() => toggleCompare(product.id)}
+            className={`flex min-h-12 items-center justify-center gap-2 rounded-full border px-3 text-sm font-semibold transition-colors ${
+              compared
+                ? "border-brand-500 bg-brand-50 text-brand-600"
+                : "border-ink-200 text-ink-700 hover:border-brand-500 hover:text-brand-600"
+            }`}
+          >
+            <GitCompare className="h-4 w-4 shrink-0" />
+            <span className="truncate">{compared ? "Comparing" : "Compare"}</span>
+          </button>
+        </div>
       </div>
 
       {added && (
