@@ -3,12 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Menu, X, Search, User, Heart, ShoppingCart, LogOut, PackageSearch } from "lucide-react";
+import { Menu, X, Search, User, Heart, ShoppingCart, LogOut, PackageSearch, GitCompare } from "lucide-react";
 import Container from "../ui/Container";
 import { navLinks } from "@/lib/mock/data";
 import { useAuth } from "../auth/AuthProvider";
 import { useCart } from "../cart/CartProvider";
 import { useWishlist } from "../wishlist/WishlistProvider";
+import { useCompare } from "../compare/CompareProvider";
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -16,6 +17,7 @@ export default function Header() {
   const { status, user, logout } = useAuth();
   const { itemCount } = useCart();
   const { count: wishlistCount } = useWishlist();
+  const { count: compareCount } = useCompare();
   const router = useRouter();
 
   async function handleLogout() {
@@ -52,6 +54,12 @@ export default function Header() {
               {link.label}
             </Link>
           ))}
+          <Link
+            href="/request-product"
+            className="text-sm font-medium text-ink-600 transition-colors hover:text-brand-500"
+          >
+            Request Product
+          </Link>
         </nav>
 
         <form action="/search" className="hidden max-w-sm flex-1 items-center md:flex">
@@ -125,6 +133,18 @@ export default function Header() {
             </Link>
           )}
           <Link
+            href="/compare"
+            aria-label="Compare products"
+            className="relative hidden h-10 w-10 items-center justify-center rounded-full text-ink-700 hover:bg-ink-100 sm:flex"
+          >
+            <GitCompare className="h-5 w-5" />
+            {compareCount > 0 && (
+              <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-brand-500 text-[10px] font-semibold text-white">
+                {compareCount > 9 ? "9+" : compareCount}
+              </span>
+            )}
+          </Link>
+          <Link
             href="/wishlist"
             aria-label="Wishlist"
             className="relative hidden h-10 w-10 items-center justify-center rounded-full text-ink-700 hover:bg-ink-100 sm:flex"
@@ -164,6 +184,13 @@ export default function Header() {
                 {link.label}
               </Link>
             ))}
+            <Link
+              href="/request-product"
+              onClick={() => setMenuOpen(false)}
+              className="rounded-lg px-3 py-2.5 text-sm font-medium text-ink-700 hover:bg-ink-100"
+            >
+              Request Product
+            </Link>
           </Container>
         </nav>
       )}

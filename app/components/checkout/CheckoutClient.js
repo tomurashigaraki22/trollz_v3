@@ -10,7 +10,7 @@ import AddressForm from "../account/AddressForm";
 import { formatNaira } from "@/lib/mock/data";
 import { useCart } from "../cart/CartProvider";
 import { addAddressAction } from "@/app/actions/account";
-import { placeOrderAction } from "@/app/actions/orders";
+import { placeOrderAction, validateCouponAction } from "@/app/actions/orders";
 
 function toFormShape(address) {
   return {
@@ -45,11 +45,17 @@ export default function CheckoutClient({ user, addresses, creditBalance = 0, cre
   const [submitting, setSubmitting] = useState(false);
   const [paymentError, setPaymentError] = useState("");
   const [useCredits, setUseCredits] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
+  const [coupon, setCoupon] = useState(null);
+  const [couponError, setCouponError] = useState("");
+  const [checkingCoupon, setCheckingCoupon] = useState(false);
 
   const availableCreditValue = creditBalance * creditValueNgn;
-  const creditDiscount = useCredits ? Math.min(availableCreditValue, total) : 0;
+  const couponDiscount = coupon?.discount ?? 0;
+  const totalAfterCoupon = Math.max(0, total - couponDiscount);
+  const creditDiscount = useCredits ? Math.min(availableCreditValue, totalAfterCoupon) : 0;
   const creditsToApply = creditValueNgn > 0 ? creditDiscount / creditValueNgn : 0;
-  const amountDue = total - creditDiscount;
+  const amountDue = totalAfterCoupon - creditDiscount;
 
   const shippingAddress = useMemo(() => {
     if (addingNew) return newAddress;
@@ -85,6 +91,7 @@ export default function CheckoutClient({ user, addresses, creditBalance = 0, cre
       })),
       total,
       creditsToApply,
+      couponCode: coupon?.code ?? "",
     });
 
     if (!result.ok) {
@@ -101,6 +108,19 @@ export default function CheckoutClient({ user, addresses, creditBalance = 0, cre
     }
 
     window.location.href = result.paymentLink;
+  }
+
+  async function handleApplyCoupon() {
+    setCheckingCoupon(true);
+    setCouponError("");
+    const result = await validateCouponAction({ code: couponCode, subtotal: total });
+    setCheckingCoupon(false);
+    if (!result.ok) {
+      setCoupon(null);
+      setCouponError(result.error);
+      return;
+    }
+    setCoupon(result.code ? { code: result.code, discount: result.discount } : null);
   }
 
   if (lines.length === 0) {
@@ -229,12 +249,47 @@ export default function CheckoutClient({ user, addresses, creditBalance = 0, cre
               <span>Shipping</span>
               <span>{shippingFee === 0 ? "Free" : formatNaira(shippingFee)}</span>
             </div>
+            {couponDiscount > 0 && (
+              <div className="flex justify-between text-success">
+                <span>Coupon {coupon.code}</span>
+                <span>-{formatNaira(couponDiscount)}</span>
+              </div>
+            )}
             {creditDiscount > 0 && (
               <div className="flex justify-between text-success">
                 <span>Store credit applied</span>
                 <span>-{formatNaira(creditDiscount)}</span>
               </div>
             )}
+          </div>
+
+          <div className="mt-4 rounded-xl border border-ink-100 p-3">
+            <label htmlFor="coupon" className="text-xs font-semibold text-ink-600">
+              Coupon code
+            </label>
+            <div className="mt-2 flex gap-2">
+              <input
+                id="coupon"
+                value={couponCode}
+                onChange={(event) => {
+                  setCouponCode(event.target.value.toUpperCase());
+                  setCoupon(null);
+                  setCouponError("");
+                }}
+                className="min-w-0 flex-1 rounded-lg border border-ink-200 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
+                placeholder="ENTER CODE"
+              />
+              <button
+                type="button"
+                onClick={handleApplyCoupon}
+                disabled={!couponCode.trim() || checkingCoupon}
+                className="rounded-full bg-ink-900 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-500 disabled:opacity-50"
+              >
+                {checkingCoupon ? "..." : "Apply"}
+              </button>
+            </div>
+            {couponError && <p className="mt-2 text-xs text-danger">{couponError}</p>}
+            {coupon && <p className="mt-2 text-xs font-medium text-success">Coupon applied.</p>}
           </div>
 
           {availableCreditValue > 0 && (

@@ -10,6 +10,8 @@ const columns = [
       { label: "Flash Deals", href: "/shop?tab=flash" },
       { label: "Categories", href: "/shop" },
       { label: "New Arrivals", href: "/shop?sort=newest" },
+      { label: "Request Product", href: "/request-product" },
+      { label: "Compare Products", href: "/compare" },
     ],
   },
   {
@@ -18,6 +20,7 @@ const columns = [
       { label: "About Us", href: "/about" },
       { label: "Contact", href: "/contact" },
       { label: "Help & Support", href: "/contact" },
+      { label: "Track Order", href: "/track-order" },
     ],
   },
   {

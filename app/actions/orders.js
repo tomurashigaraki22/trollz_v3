@@ -4,21 +4,49 @@ import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/session";
 import { createPendingOrder, cancelOrder, markOrderPaid } from "@/lib/queries/orders";
 import { getUserCredits, getReferralSettings } from "@/lib/queries/referrals";
+import { validateCoupon } from "@/lib/queries/coupons";
 import { initializePayment } from "@/lib/flutterwave";
 import { SITE_URL } from "@/lib/site";
 
-export async function placeOrderAction({ addressId, addressText, items, total, creditsToApply = 0 }) {
+export async function validateCouponAction({ code, subtotal }) {
+  const user = await requireUser();
+  const result = await validateCoupon({ code, subtotal, userId: user.id });
+  if (!result.ok) return result;
+  return {
+    ok: true,
+    discount: result.discount,
+    code: result.coupon?.code ?? null,
+    description: result.coupon?.description ?? "",
+  };
+}
+
+export async function placeOrderAction({
+  addressId,
+  addressText,
+  items,
+  total,
+  creditsToApply = 0,
+  couponCode = "",
+}) {
   const user = await requireUser();
 
   // Never trust a client-supplied discount — reclamp against the real
   // balance and the admin-configured conversion rate.
-  const [balance, settings] = await Promise.all([getUserCredits(user.id), getReferralSettings()]);
+  const [balance, settings, couponResult] = await Promise.all([
+    getUserCredits(user.id),
+    getReferralSettings(),
+    validateCoupon({ code: couponCode, subtotal: total, userId: user.id }),
+  ]);
+  if (!couponResult.ok) return couponResult;
+
+  const couponDiscount = Number(couponResult.discount ?? 0);
   const creditValueNgn = Number(settings.credit_value_ngn);
   const requestedCredits = Math.max(0, Math.min(Number(creditsToApply) || 0, balance));
   const maxDiscount = requestedCredits * creditValueNgn;
-  const discount = Math.min(maxDiscount, total);
+  const discountableAfterCoupon = Math.max(0, total - couponDiscount);
+  const discount = Math.min(maxDiscount, discountableAfterCoupon);
   const creditsUsed = creditValueNgn > 0 ? discount / creditValueNgn : 0;
-  const discountedTotal = Math.max(0, total - discount);
+  const discountedTotal = Math.max(0, total - couponDiscount - discount);
 
   const transactionId = `TS_${Date.now()}_${user.id}`;
 
@@ -31,6 +59,8 @@ export async function placeOrderAction({ addressId, addressText, items, total, c
     paymentMethod: discountedTotal === 0 ? "store-credit" : "flutterwave",
     transactionId,
     creditsUsed,
+    coupon: couponResult.coupon,
+    couponDiscount,
   });
 
   if (discountedTotal === 0) {

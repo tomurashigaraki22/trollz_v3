@@ -71,17 +71,22 @@ export default function OrdersList({ orders }) {
               <span className="text-sm font-semibold text-ink-900">
                 Total: {formatNaira(order.total_amount)}
               </span>
-              {canCancel && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={isPending}
-                  onClick={() => handleCancel(order.id)}
-                >
-                  Cancel Order
+              <div className="flex items-center gap-2">
+                <Button href={`/track-order?tracking=${order.tracking}`} variant="outline" size="sm">
+                  Track
                 </Button>
-              )}
+                {canCancel && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={isPending}
+                    onClick={() => handleCancel(order.id)}
+                  >
+                    Cancel Order
+                  </Button>
+                )}
+              </div>
             </div>
           </Card>
         );

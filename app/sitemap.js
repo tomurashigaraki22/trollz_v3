@@ -4,6 +4,9 @@ import { getAllProductIds } from "@/lib/queries/products";
 const staticRoutes = [
   { path: "", changeFrequency: "daily", priority: 1 },
   { path: "/shop", changeFrequency: "daily", priority: 0.9 },
+  { path: "/request-product", changeFrequency: "monthly", priority: 0.7 },
+  { path: "/compare", changeFrequency: "monthly", priority: 0.4 },
+  { path: "/track-order", changeFrequency: "monthly", priority: 0.3 },
   { path: "/about", changeFrequency: "monthly", priority: 0.5 },
   { path: "/contact", changeFrequency: "monthly", priority: 0.5 },
   { path: "/privacy-policy", changeFrequency: "yearly", priority: 0.2 },

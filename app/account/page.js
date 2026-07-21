@@ -1,21 +1,19 @@
 import Link from "next/link";
-import { PackageSearch, MapPin, CreditCard, ArrowRight } from "lucide-react";
+import { PackageSearch, MapPin, Coins, ArrowRight } from "lucide-react";
 import Card from "../components/ui/Card";
 import { formatNaira } from "@/lib/mock/data";
 import { ORDER_STATUS_STYLES } from "@/lib/orderStatus";
 import { requireUser } from "@/lib/session";
 import { getOrdersForUser } from "@/lib/queries/orders";
 import { getAddressesForUser } from "@/lib/queries/addresses";
-import { getPaymentMethodsForUser } from "@/lib/queries/paymentMethods";
 
 export const dynamic = "force-dynamic";
 
 export default async function AccountOverviewPage() {
   const user = await requireUser();
-  const [orders, addresses, paymentMethods] = await Promise.all([
+  const [orders, addresses] = await Promise.all([
     getOrdersForUser(user.id),
     getAddressesForUser(user.id),
-    getPaymentMethodsForUser(user.id),
   ]);
 
   const defaultAddress = addresses.find((address) => address.is_default) ?? addresses[0];
@@ -44,13 +42,11 @@ export default async function AccountOverviewPage() {
           <p className="text-sm text-ink-500">Default shipping address</p>
         </Card>
         <Card className="p-5">
-          <CreditCard className="h-5 w-5 text-brand-500" />
-          <p className="mt-3 text-sm font-semibold text-ink-900">
-            {paymentMethods.length > 0
-              ? `${paymentMethods.length} saved method${paymentMethods.length === 1 ? "" : "s"}`
-              : "No cards saved"}
+          <Coins className="h-5 w-5 text-brand-500" />
+          <p className="mt-3 text-2xl font-bold text-ink-900">
+            {Number(user.loyalty_points ?? 0).toLocaleString()}
           </p>
-          <p className="text-sm text-ink-500">Payment methods</p>
+          <p className="text-sm text-ink-500">Loyalty points</p>
         </Card>
       </div>
 

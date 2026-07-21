@@ -4,7 +4,8 @@ import SiteChrome from "./components/layout/SiteChrome";
 import { AuthProvider } from "./components/auth/AuthProvider";
 import { CartProvider } from "./components/cart/CartProvider";
 import { WishlistProvider } from "./components/wishlist/WishlistProvider";
-import { SITE_URL, SITE_NAME } from "@/lib/site";
+import { CompareProvider } from "./components/compare/CompareProvider";
+import { absoluteUrl, DEFAULT_OG_IMAGE, SITE_DESCRIPTION, SITE_URL, SITE_NAME } from "@/lib/site";
 import { getCurrentUser } from "@/lib/session";
 
 const geistSans = Geist({
@@ -23,22 +24,31 @@ export const metadata = {
     default: `${SITE_NAME} - General eCommerce Store`,
     template: `%s - ${SITE_NAME}`,
   },
-  description:
-    "TrollzStore — Nigeria's everyday shopping destination for fashion, electronics, home & lifestyle, and beauty.",
+  description: SITE_DESCRIPTION,
   keywords: ["Trollz Store", "General merchandise", "Nigeria online store"],
+  alternates: {
+    canonical: SITE_URL,
+  },
   openGraph: {
     type: "website",
     siteName: SITE_NAME,
     title: `${SITE_NAME} - General eCommerce Store`,
-    description:
-      "Nigeria's everyday shopping destination for fashion, electronics, home & lifestyle, and beauty.",
+    description: SITE_DESCRIPTION,
     url: SITE_URL,
+    images: [
+      {
+        url: absoluteUrl(DEFAULT_OG_IMAGE),
+        width: 1200,
+        height: 630,
+        alt: SITE_NAME,
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: `${SITE_NAME} - General eCommerce Store`,
-    description:
-      "Nigeria's everyday shopping destination for fashion, electronics, home & lifestyle, and beauty.",
+    description: SITE_DESCRIPTION,
+    images: [absoluteUrl(DEFAULT_OG_IMAGE)],
   },
 };
 
@@ -54,7 +64,9 @@ export default async function RootLayout({ children }) {
         <AuthProvider initialUser={user}>
           <CartProvider>
             <WishlistProvider>
-              <SiteChrome>{children}</SiteChrome>
+              <CompareProvider>
+                <SiteChrome>{children}</SiteChrome>
+              </CompareProvider>
             </WishlistProvider>
           </CartProvider>
         </AuthProvider>

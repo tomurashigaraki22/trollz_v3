@@ -16,6 +16,7 @@ import {
   Image as ImageIcon,
   Gift,
   ShieldCheck,
+  Search,
 } from "lucide-react";
 import { adminLogoutAction } from "@/app/actions/admin";
 
@@ -28,6 +29,7 @@ const links = [
   { href: "/admin/referrals", label: "Referrals & Credit", icon: Gift },
   { href: "/admin/sellers", label: "Sellers", icon: Store },
   { href: "/admin/seller-applications", label: "Seller Applications", icon: ShieldCheck },
+  { href: "/admin/product-requests", label: "Product Requests", icon: Search },
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/banner", label: "Homepage Banner", icon: ImageIcon },
   { href: "/admin/support", label: "Support Inbox", icon: Headset },

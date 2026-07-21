@@ -54,12 +54,20 @@ export default async function ReferralsPage() {
         <Card className="p-5">
           <Users className="h-5 w-5 text-brand-500" />
           <p className="mt-3 text-2xl font-bold text-ink-900">{stats.referralCount}</p>
-          <p className="text-sm text-ink-500">Successful referrals</p>
+          <p className="text-sm text-ink-500">People referred</p>
+          <p className="mt-1 text-xs text-ink-400">
+            {stats.pendingReferralCount.toLocaleString()} pending credit qualification
+          </p>
         </Card>
         <Card className="p-5">
           <Gift className="h-5 w-5 text-brand-500" />
-          <p className="mt-3 text-2xl font-bold text-ink-900">{stats.creditsEarned.toLocaleString()}</p>
-          <p className="text-sm text-ink-500">Lifetime credits earned</p>
+          <p className="mt-3 text-2xl font-bold text-ink-900">
+            {stats.successfulReferralCount.toLocaleString()}
+          </p>
+          <p className="text-sm text-ink-500">Qualified referrals</p>
+          <p className="mt-1 text-xs text-ink-400">
+            {stats.creditsEarned.toLocaleString()} lifetime credits earned
+          </p>
         </Card>
       </div>
 

@@ -2,15 +2,18 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Minus, Plus, ShoppingCart, Heart, Check } from "lucide-react";
+import { Minus, Plus, ShoppingCart, Heart, Check, GitCompare } from "lucide-react";
 import Button from "../ui/Button";
 import { useCart } from "../cart/CartProvider";
 import { useWishlist } from "../wishlist/WishlistProvider";
+import { useCompare } from "../compare/CompareProvider";
 
 export default function ProductPurchasePanel({ product }) {
   const { addItem } = useCart();
   const { toggle, isWishlisted } = useWishlist();
+  const { toggle: toggleCompare, isCompared } = useCompare();
   const wishlisted = isWishlisted(product.id);
+  const compared = isCompared(product.id);
   const router = useRouter();
   const [qty, setQty] = useState(1);
   const [size, setSize] = useState("");
@@ -137,6 +140,16 @@ export default function ProductPurchasePanel({ product }) {
           className={`w-13 shrink-0 px-0 ${wishlisted ? "border-brand-500 text-brand-500" : ""}`}
         >
           <Heart className="h-4 w-4" fill={wishlisted ? "currentColor" : "none"} />
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="lg"
+          aria-label={compared ? "Remove from comparison" : "Compare product"}
+          onClick={() => toggleCompare(product.id)}
+          className={`w-13 shrink-0 px-0 ${compared ? "border-brand-500 text-brand-500" : ""}`}
+        >
+          <GitCompare className="h-4 w-4" />
         </Button>
       </div>
 

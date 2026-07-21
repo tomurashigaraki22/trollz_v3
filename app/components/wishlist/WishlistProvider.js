@@ -8,7 +8,8 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
-const WISHLIST_KEY = "trollz_mock_wishlist";
+const WISHLIST_KEY = "trollz_wishlist";
+const LEGACY_WISHLIST_KEY = "trollz_mock_wishlist";
 
 const WishlistContext = createContext(null);
 
@@ -16,7 +17,9 @@ function readWishlist() {
   if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem(WISHLIST_KEY);
-    return raw ? JSON.parse(raw) : [];
+    if (raw) return JSON.parse(raw);
+    const legacy = window.localStorage.getItem(LEGACY_WISHLIST_KEY);
+    return legacy ? JSON.parse(legacy) : [];
   } catch {
     return [];
   }

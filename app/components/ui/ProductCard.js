@@ -3,17 +3,20 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Heart, ShoppingCart, Check } from "lucide-react";
+import { Heart, ShoppingCart, Check, GitCompare } from "lucide-react";
 import PlaceholderImage from "./PlaceholderImage";
 import { formatNaira } from "@/lib/mock/data";
 import { useCart } from "../cart/CartProvider";
 import { useWishlist } from "../wishlist/WishlistProvider";
+import { useCompare } from "../compare/CompareProvider";
 
 export default function ProductCard({ product }) {
   const { addItem } = useCart();
   const { toggle, isWishlisted } = useWishlist();
+  const { toggle: toggleCompare, isCompared } = useCompare();
   const [added, setAdded] = useState(false);
   const wishlisted = isWishlisted(product.id);
+  const compared = isCompared(product.id);
 
   const image = product.images?.[0];
   const showOriginalPrice = product.originalPrice > product.price;
@@ -34,6 +37,12 @@ export default function ProductCard({ product }) {
     event.preventDefault();
     event.stopPropagation();
     toggle(product.id);
+  }
+
+  function handleToggleCompare(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    toggleCompare(product.id);
   }
 
   return (
@@ -67,6 +76,16 @@ export default function ProductCard({ product }) {
           }`}
         >
           <Heart className="h-4 w-4" fill={wishlisted ? "currentColor" : "none"} />
+        </button>
+        <button
+          type="button"
+          aria-label={compared ? "Remove from comparison" : "Compare product"}
+          onClick={handleToggleCompare}
+          className={`absolute top-14 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 shadow-sm transition-colors hover:text-brand-500 ${
+            compared ? "text-brand-500" : "text-ink-600"
+          }`}
+        >
+          <GitCompare className="h-4 w-4" />
         </button>
       </Link>
 
