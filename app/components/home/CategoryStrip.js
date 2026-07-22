@@ -35,9 +35,6 @@ const ICONS = {
 };
 
 function CategoryIcon({ category, className }) {
-  if (category.icon) {
-    return <img src={category.icon} alt="" className={className} />;
-  }
   const icon = ICONS[category.name] ?? Briefcase01Icon;
   return <HugeiconsIcon icon={icon} className={className} strokeWidth={1.75} />;
 }
