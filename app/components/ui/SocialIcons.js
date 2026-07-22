@@ -19,6 +19,15 @@ export function InstagramIcon(props) {
   );
 }
 
+export function TikTokIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} {...props}>
+      <path d="M14 4v10.2a4.2 4.2 0 1 1-4.2-4.2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M14 4c.7 2.8 2.4 4.5 5 5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function XIcon(props) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} {...props}>

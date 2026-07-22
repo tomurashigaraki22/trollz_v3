@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Container from "../ui/Container";
-import { FacebookIcon, InstagramIcon, XIcon } from "../ui/SocialIcons";
+import { InstagramIcon, TikTokIcon, XIcon } from "../ui/SocialIcons";
 
 const columns = [
   {
@@ -34,9 +34,9 @@ const columns = [
 ];
 
 const socials = [
-  { label: "Facebook", href: "#", icon: FacebookIcon },
-  { label: "Instagram", href: "#", icon: InstagramIcon },
-  { label: "X", href: "#", icon: XIcon },
+  { label: "Instagram", href: "https://www.instagram.com/trollzmallstorelimited?igsh=dzQ2anRuZ3E2dmIw&utm_source=qr", icon: InstagramIcon },
+  { label: "TikTok", href: "https://www.tiktok.com/@official_trollz_store?_r=1&_t=ZS-98EaLKk0kVd", icon: TikTokIcon },
+  { label: "X", href: "https://x.com/trollzstore?s=11", icon: XIcon },
 ];
 
 export default function Footer() {
@@ -58,6 +58,8 @@ export default function Footer() {
                   key={label}
                   href={href}
                   aria-label={label}
+                  target="_blank"
+                  rel="noreferrer"
                   className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-ink-300 transition-colors hover:bg-brand-500 hover:text-white"
                 >
                   <Icon className="h-4 w-4" />

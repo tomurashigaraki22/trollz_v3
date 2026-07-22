@@ -3,7 +3,7 @@ import PageHero from "../components/ui/PageHero";
 import Section from "../components/ui/Section";
 import Card from "../components/ui/Card";
 import ContactForm from "../components/contact/ContactForm";
-import { FacebookIcon, InstagramIcon, XIcon } from "../components/ui/SocialIcons";
+import { InstagramIcon, TikTokIcon, XIcon } from "../components/ui/SocialIcons";
 
 export const metadata = {
   title: "Contact Us - TrollzStore",
@@ -18,9 +18,9 @@ const infoItems = [
 ];
 
 const socials = [
-  { label: "Facebook", href: "#", icon: FacebookIcon },
-  { label: "Instagram", href: "#", icon: InstagramIcon },
-  { label: "X", href: "#", icon: XIcon },
+  { label: "Instagram", href: "https://www.instagram.com/trollzmallstorelimited?igsh=dzQ2anRuZ3E2dmIw&utm_source=qr", icon: InstagramIcon },
+  { label: "TikTok", href: "https://www.tiktok.com/@official_trollz_store?_r=1&_t=ZS-98EaLKk0kVd", icon: TikTokIcon },
+  { label: "X", href: "https://x.com/trollzstore?s=11", icon: XIcon },
 ];
 
 export default function ContactPage() {
@@ -63,6 +63,8 @@ export default function ContactPage() {
                   key={label}
                   href={href}
                   aria-label={label}
+                  target="_blank"
+                  rel="noreferrer"
                   className="flex h-9 w-9 items-center justify-center rounded-full bg-ink-50 text-ink-600 transition-colors hover:bg-brand-500 hover:text-white"
                 >
                   <Icon className="h-4 w-4" />

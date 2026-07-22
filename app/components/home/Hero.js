@@ -39,7 +39,7 @@ export default async function Hero() {
           Nigeria&apos;s everyday shopping destination
         </span>
         <h1 className="max-w-2xl text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
-          Shop with Confidence. Every Seller is Verified. Every Order Matters.
+          Shop with Confidence. Every Seller is Verified. Every Order is Protected.
         </h1>
         <p className="max-w-xl text-base leading-7 text-ink-300 sm:text-lg">
           Discover authentic products from trusted Nigerian businesses, backed
