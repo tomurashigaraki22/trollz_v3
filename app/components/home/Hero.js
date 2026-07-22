@@ -39,11 +39,11 @@ export default async function Hero() {
           Nigeria&apos;s everyday shopping destination
         </span>
         <h1 className="max-w-2xl text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
-          Discover excellence in every shop
+          Shop with Confidence. Every Seller is Verified. Every Order Matters.
         </h1>
         <p className="max-w-xl text-base leading-7 text-ink-300 sm:text-lg">
-          Fashion, electronics, home essentials and more — all in one place,
-          delivered fast with secure checkout you can trust.
+          Discover authentic products from trusted Nigerian businesses, backed
+          by secure payments, order tracking, and dedicated customer support.
         </p>
         <div className="flex flex-wrap items-center gap-3 pt-2">
           <Button href="/shop" size="lg">
