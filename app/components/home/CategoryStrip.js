@@ -24,32 +24,31 @@ export default function CategoryStrip({ categories = [] }) {
 
   return (
     <Section className="pt-16 sm:pt-20">
-      <div className="mb-8 flex items-end justify-between gap-4">
+      <div className="mb-5 flex items-end justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-ink-900 sm:text-3xl">
+          <h2 className="text-xl font-bold tracking-tight text-ink-900 sm:text-2xl">
             Shop by category
           </h2>
-          <p className="mt-2 text-sm text-ink-500">
+          <p className="mt-1 text-sm text-ink-500">
             Curated collections across everything you need.
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-flow-col grid-rows-2 gap-3 overflow-x-auto pb-2 [grid-auto-columns:minmax(132px,1fr)] sm:[grid-auto-columns:minmax(170px,1fr)] lg:grid-flow-row lg:grid-cols-4 lg:grid-rows-2 lg:overflow-visible">
         {categories.map((category, index) => (
           <Link
             key={category.id}
             href={`/shop?category=${slugify(category.name)}`}
-            className={`group relative flex min-h-[220px] flex-col justify-end overflow-hidden rounded-2xl bg-gradient-to-br p-6 text-white transition-transform duration-300 hover:-translate-y-1 ${TONES[index % TONES.length]}`}
+            className={`group flex min-h-20 items-center justify-between gap-3 rounded-2xl bg-gradient-to-br px-4 py-3 text-white transition-transform duration-300 hover:-translate-y-0.5 ${TONES[index % TONES.length]}`}
           >
-            <h3 className="text-lg font-bold">{category.name}</h3>
-            <p className="mt-1 text-sm text-white/80">
-              {DESCRIPTIONS[category.name] ?? "Browse our full range of quality products."}
-            </p>
-            <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold">
-              Explore
-              <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
-            </span>
+            <div className="min-w-0">
+              <h3 className="truncate text-sm font-bold">{category.name}</h3>
+              <p className="mt-0.5 line-clamp-1 text-xs text-white/75">
+                {DESCRIPTIONS[category.name] ?? "Quality products"}
+              </p>
+            </div>
+            <ArrowRight className="h-4 w-4 shrink-0 transition-transform duration-200 group-hover:translate-x-1" />
           </Link>
         ))}
       </div>
