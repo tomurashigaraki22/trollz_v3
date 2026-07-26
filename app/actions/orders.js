@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/session";
-import { createPendingOrder, cancelOrder, markOrderPaid } from "@/lib/queries/orders";
+import { createPendingOrder, cancelOrder, markOrderFailed, markOrderPaid } from "@/lib/queries/orders";
 import { getUserCredits, getReferralSettings } from "@/lib/queries/referrals";
 import { validateCoupon } from "@/lib/queries/coupons";
 import { initializePayment } from "@/lib/flutterwave";
@@ -78,6 +78,7 @@ export async function placeOrderAction({
   });
 
   if (!payment.ok) {
+    await markOrderFailed(transactionId);
     return { ok: false, error: payment.error };
   }
 

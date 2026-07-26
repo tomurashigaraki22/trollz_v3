@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { verifyTransaction } from "@/lib/flutterwave";
+import { verifyTransaction, verifyTransactionByReference } from "@/lib/flutterwave";
 import { getOrderByTransactionId, markOrderPaid, markOrderFailed } from "@/lib/queries/orders";
 import { clearCart } from "@/lib/queries/cart";
 import { getCurrentUser } from "@/lib/session";
@@ -10,31 +10,33 @@ export default async function CheckoutCallbackPage({ searchParams }) {
   const params = await searchParams;
   const txRef = typeof params?.tx_ref === "string" ? params.tx_ref : "";
   const transactionId = typeof params?.transaction_id === "string" ? params.transaction_id : "";
-  const status = typeof params?.status === "string" ? params.status : "";
+  const status = typeof params?.status === "string" ? params.status.toLowerCase() : "";
 
-  const order = txRef ? await getOrderByTransactionId(txRef) : null;
-
-  if (!order || status !== "successful" || !transactionId) {
-    if (txRef) await markOrderFailed(txRef);
+  if (!transactionId && !txRef) {
     redirect("/checkout?payment=failed");
   }
 
-  const verification = await verifyTransaction(transactionId);
+  const verification = transactionId
+    ? await verifyTransaction(transactionId)
+    : await verifyTransactionByReference(txRef);
   const transaction = verification.ok ? verification.transaction : null;
+  const verifiedTxRef = transaction?.tx_ref || txRef;
+  const order = verifiedTxRef ? await getOrderByTransactionId(verifiedTxRef) : null;
 
   const isValid =
+    order &&
     transaction &&
     transaction.status === "successful" &&
-    transaction.tx_ref === txRef &&
-    transaction.currency === "NGN" &&
+    transaction.tx_ref === verifiedTxRef &&
+    String(transaction.currency || "").toUpperCase() === "NGN" &&
     Number(transaction.amount) >= Number(order.total_amount);
 
   if (!isValid) {
-    await markOrderFailed(txRef);
+    if (verifiedTxRef) await markOrderFailed(verifiedTxRef);
     redirect("/checkout?payment=failed");
   }
 
-  await markOrderPaid(txRef);
+  await markOrderPaid(verifiedTxRef);
 
   const user = await getCurrentUser();
   if (user) {
