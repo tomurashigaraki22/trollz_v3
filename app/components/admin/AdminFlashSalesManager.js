@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Zap, Search } from "lucide-react";
+import { Zap, Search, AlertTriangle } from "lucide-react";
 import { formatNaira } from "@/lib/mock/data";
 import {
   setProductFlashSaleAction,
   searchProductsForFlashSaleAction,
+  renewFlashSaleAction,
+  renewAllExpiredFlashSalesAction,
 } from "@/app/actions/admin";
 
 function defaultFlashSaleEnd() {
@@ -25,8 +27,15 @@ export default function AdminFlashSalesManager({ flashSaleProducts }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
+  const [renewingAll, setRenewingAll] = useState(false);
   const [, startTransition] = useTransition();
   const router = useRouter();
+
+  const activeCount = useMemo(
+    () => flashSaleProducts.filter((product) => product.is_active).length,
+    [flashSaleProducts]
+  );
+  const expiredCount = flashSaleProducts.length - activeCount;
 
   async function handleSearch(event) {
     const value = event.target.value;
@@ -83,20 +92,60 @@ export default function AdminFlashSalesManager({ flashSaleProducts }) {
     });
   }
 
+  function handleRenew(productId) {
+    startTransition(async () => {
+      await renewFlashSaleAction(productId, 7);
+      router.refresh();
+    });
+  }
+
+  function handleRenewAll() {
+    if (!window.confirm(`Extend all ${expiredCount} expired flash sales by 7 days?`)) return;
+    setRenewingAll(true);
+    startTransition(async () => {
+      await renewAllExpiredFlashSalesAction(7);
+      setRenewingAll(false);
+      router.refresh();
+    });
+  }
+
   return (
     <div className="space-y-8">
-      <div className="flex items-center gap-3">
-        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-500 text-white">
-          <Zap className="h-5 w-5" />
-        </span>
-        <div>
-          <h1 className="text-xl font-bold text-ink-900">Flash Sales</h1>
-          <p className="text-sm text-ink-500">
-            {flashSaleProducts.length} product{flashSaleProducts.length === 1 ? "" : "s"}{" "}
-            currently in a flash sale.
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-500 text-white">
+            <Zap className="h-5 w-5" />
+          </span>
+          <div>
+            <h1 className="text-xl font-bold text-ink-900">Flash Sales</h1>
+            <p className="text-sm text-ink-500">
+              {activeCount} live on the storefront right now
+              {expiredCount > 0 && ` · ${expiredCount} expired`}
+            </p>
+          </div>
+        </div>
+        {expiredCount > 0 && (
+          <button
+            type="button"
+            onClick={handleRenewAll}
+            disabled={renewingAll}
+            className="rounded-full border border-warning/40 bg-warning/10 px-4 py-2 text-sm font-medium text-warning hover:bg-warning/20 disabled:opacity-50"
+          >
+            {renewingAll ? "Renewing..." : `Renew all ${expiredCount} expired (+7 days)`}
+          </button>
+        )}
+      </div>
+
+      {expiredCount > 0 && (
+        <div className="flex items-start gap-3 rounded-2xl border border-warning/30 bg-warning/10 p-4 text-sm text-ink-800">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+          <p>
+            {expiredCount} product{expiredCount === 1 ? "" : "s"} below {expiredCount === 1 ? "is" : "are"}{" "}
+            still flagged as a flash sale but the end date has already passed — that&apos;s why they
+            don&apos;t show up on the homepage or shop page. Renew or remove them below.
           </p>
         </div>
-      </div>
+      )}
 
       <div>
         <h2 className="mb-3 text-sm font-semibold text-ink-900">Add a product</h2>
@@ -136,6 +185,7 @@ export default function AdminFlashSalesManager({ flashSaleProducts }) {
         <table className="w-full text-left text-sm">
           <thead className="border-b border-ink-100 text-xs tracking-wide text-ink-400 uppercase">
             <tr>
+              <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Product</th>
               <th className="px-4 py-3">Price</th>
               <th className="px-4 py-3">Discount (%)</th>
@@ -145,7 +195,18 @@ export default function AdminFlashSalesManager({ flashSaleProducts }) {
           </thead>
           <tbody className="divide-y divide-ink-100">
             {flashSaleProducts.map((product) => (
-              <tr key={product.id}>
+              <tr key={product.id} className={product.is_active ? "" : "bg-warning/5"}>
+                <td className="px-4 py-3">
+                  <span
+                    className={`rounded-full border px-2.5 py-1 text-xs font-medium ${
+                      product.is_active
+                        ? "border-success/30 bg-success/15 text-success"
+                        : "border-warning/30 bg-warning/15 text-warning"
+                    }`}
+                  >
+                    {product.is_active ? "Active" : "Expired"}
+                  </span>
+                </td>
                 <td className="px-4 py-3 font-medium text-ink-900">{product.item}</td>
                 <td className="px-4 py-3 text-ink-500">{formatNaira(product.price)}</td>
                 <td className="px-4 py-3">
@@ -167,19 +228,30 @@ export default function AdminFlashSalesManager({ flashSaleProducts }) {
                   />
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <button
-                    type="button"
-                    onClick={() => handleRemove(product.id)}
-                    className="rounded-full border border-ink-200 px-3 py-1 text-xs font-medium text-ink-600 hover:bg-ink-50"
-                  >
-                    Remove
-                  </button>
+                  <div className="flex justify-end gap-2">
+                    {!product.is_active && (
+                      <button
+                        type="button"
+                        onClick={() => handleRenew(product.id)}
+                        className="rounded-full border border-success/30 bg-success/10 px-3 py-1 text-xs font-medium text-success hover:bg-success/20"
+                      >
+                        Renew +7d
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleRemove(product.id)}
+                      className="rounded-full border border-ink-200 px-3 py-1 text-xs font-medium text-ink-600 hover:bg-ink-50"
+                    >
+                      Remove
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
             {flashSaleProducts.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-sm text-ink-500">
+                <td colSpan={6} className="px-4 py-8 text-center text-sm text-ink-500">
                   No products in a flash sale yet.
                 </td>
               </tr>

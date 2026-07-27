@@ -2,11 +2,60 @@
 
 import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/session";
-import { createPendingOrder, cancelOrder, markOrderFailed, markOrderPaid } from "@/lib/queries/orders";
+import {
+  createPendingOrder,
+  cancelOrder,
+  markOrderFailed,
+  markOrderPaid,
+  getOrderByTransactionId,
+} from "@/lib/queries/orders";
 import { getUserCredits, getReferralSettings } from "@/lib/queries/referrals";
 import { validateCoupon } from "@/lib/queries/coupons";
-import { initializePayment } from "@/lib/flutterwave";
+import { initializePayment, verifyTransactionByReference } from "@/lib/flutterwave";
 import { SITE_URL } from "@/lib/site";
+
+const HARD_FAILURE_STATUSES = new Set(["failed", "cancelled", "abandoned", "declined"]);
+
+// Polled by the /checkout/pending page while a bank transfer settles. Does
+// its own re-verification with Flutterwave on every call rather than just
+// reading whatever the webhook last wrote — so payment still confirms even
+// if the webhook is misconfigured or never arrives.
+export async function checkOrderPaymentStatusAction(txRef) {
+  const user = await requireUser();
+  const order = await getOrderByTransactionId(txRef);
+
+  if (!order || order.user_id !== user.id) {
+    return { status: "not_found" };
+  }
+  if (order.payment_status === "paid") {
+    return { status: "paid", tracking: order.tracking, total: order.total_amount, items: order.items.length };
+  }
+  if (order.payment_status === "failed") {
+    return { status: "failed" };
+  }
+
+  const verification = await verifyTransactionByReference(txRef);
+  const transaction = verification.ok ? verification.transaction : null;
+
+  const isConfirmedPaid =
+    transaction &&
+    transaction.status === "successful" &&
+    transaction.tx_ref === txRef &&
+    String(transaction.currency || "").toUpperCase() === "NGN" &&
+    Number(transaction.amount) >= Number(order.total_amount);
+
+  if (isConfirmedPaid) {
+    await markOrderPaid(txRef);
+    return { status: "paid", tracking: order.tracking, total: order.total_amount, items: order.items.length };
+  }
+
+  if (HARD_FAILURE_STATUSES.has(transaction?.status)) {
+    await markOrderFailed(txRef);
+    return { status: "failed" };
+  }
+
+  return { status: "pending" };
+}
 
 export async function validateCouponAction({ code, subtotal }) {
   const user = await requireUser();

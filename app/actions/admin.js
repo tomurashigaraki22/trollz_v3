@@ -11,6 +11,8 @@ import {
   deleteCategory,
   setProductFlashSale,
   searchProductsForAdmin,
+  renewFlashSale,
+  renewAllExpiredFlashSales,
 } from "@/lib/queries/admin-products";
 import { updateOrderStatus } from "@/lib/queries/orders";
 import { updateSupportMessageStatus, deleteSupportMessage } from "@/lib/queries/support";
@@ -101,6 +103,21 @@ export async function searchProductsForFlashSaleAction(term) {
   await requireAdmin();
   if (!term.trim()) return [];
   return searchProductsForAdmin(term.trim());
+}
+
+export async function renewFlashSaleAction(id, days = 7) {
+  await requireAdmin();
+  await renewFlashSale(id, days);
+  revalidatePath("/admin/flash-sales");
+  revalidatePath("/");
+}
+
+export async function renewAllExpiredFlashSalesAction(days = 7) {
+  await requireAdmin();
+  const count = await renewAllExpiredFlashSales(days);
+  revalidatePath("/admin/flash-sales");
+  revalidatePath("/");
+  return count;
 }
 
 export async function createSellerAction(seller) {

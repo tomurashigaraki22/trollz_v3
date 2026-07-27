@@ -7,6 +7,9 @@ import Section from "../components/ui/Section";
 import Card from "../components/ui/Card";
 import { createProductRequestAction } from "@/app/actions/productRequests";
 
+const inputClass =
+  "mt-2 block w-full rounded-lg border border-ink-200 px-3 py-2.5 text-sm focus:border-brand-500 focus:outline-none";
+
 export default function RequestProductPage() {
   const [state, formAction, pending] = useActionState(createProductRequestAction, { ok: false, error: "" });
 
@@ -31,21 +34,21 @@ export default function RequestProductPage() {
 
           <form action={formAction} className="space-y-4">
             <Field label="Product name or item">
-              <input name="productName" required className="ts-input" placeholder="e.g. iPhone 15 Pro case, Nike slides..." />
+              <input name="productName" required className={inputClass} placeholder="e.g. iPhone 15 Pro case, Nike slides..." />
             </Field>
             <Field label="Extra details">
-              <textarea name="description" rows={4} className="ts-input min-h-28 py-3" placeholder="Color, size, budget, brand, delivery timeline..." />
+              <textarea name="description" rows={4} className={`${inputClass} min-h-28 py-3`} placeholder="Color, size, budget, brand, delivery timeline..." />
             </Field>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field label="Your name">
-                <input name="name" className="ts-input" placeholder="Name" />
+                <input name="name" className={inputClass} placeholder="Name" />
               </Field>
               <Field label="Email">
-                <input name="email" type="email" required className="ts-input" placeholder="you@example.com" />
+                <input name="email" type="email" required className={inputClass} placeholder="you@example.com" />
               </Field>
             </div>
             <Field label="Phone">
-              <input name="phone" className="ts-input" placeholder="Optional" />
+              <input name="phone" className={inputClass} placeholder="Optional" />
             </Field>
             <label className="block rounded-xl border border-dashed border-ink-200 p-4 text-sm text-ink-600">
               <span className="flex items-center gap-2 font-medium text-ink-800">

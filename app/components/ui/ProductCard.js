@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Heart, ShoppingCart, Check, GitCompare } from "lucide-react";
 import PlaceholderImage from "./PlaceholderImage";
+import FlashCountdownBadge from "./FlashCountdownBadge";
 import { formatNaira } from "@/lib/mock/data";
 import { useCart } from "../cart/CartProvider";
 import { useWishlist } from "../wishlist/WishlistProvider";
@@ -66,6 +67,12 @@ export default function ProductCard({ product }) {
           <span className="absolute top-3 left-3 rounded-full bg-brand-500 px-2.5 py-1 text-xs font-semibold text-white">
             -{product.discount}%
           </span>
+        )}
+        {product.isFlashSale && product.flashSaleEnd && (
+          <FlashCountdownBadge
+            endsAt={product.flashSaleEnd}
+            className="absolute bottom-3 left-3"
+          />
         )}
         <button
           type="button"

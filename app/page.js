@@ -3,6 +3,7 @@ import CategoryStrip from "./components/home/CategoryStrip";
 import ValueProps from "./components/home/ValueProps";
 import FlashDeals from "./components/home/FlashDeals";
 import TrendingGrid from "./components/home/TrendingGrid";
+import RequestProductBanner from "./components/home/RequestProductBanner";
 import Newsletter from "./components/home/Newsletter";
 import { getTopLevelCategories, getFlashSaleProducts, getTrendingProducts } from "@/lib/queries/products";
 
@@ -22,6 +23,7 @@ export default async function Home() {
       <ValueProps />
       <FlashDeals products={flashSaleProducts} />
       <TrendingGrid products={trendingProducts} />
+      <RequestProductBanner />
       <Newsletter />
     </>
   );

@@ -56,7 +56,7 @@ export default function Header() {
           ))}
           <Link
             href="/request-product"
-            className="text-sm font-medium text-ink-600 transition-colors hover:text-brand-500"
+            className="rounded-full border border-brand-200 bg-brand-50 px-4 py-1.5 text-sm font-semibold text-brand-600 transition-colors hover:border-brand-500 hover:bg-brand-500 hover:text-white"
           >
             Request Product
           </Link>
@@ -192,7 +192,7 @@ export default function Header() {
             <Link
               href="/request-product"
               onClick={() => setMenuOpen(false)}
-              className="rounded-lg px-3 py-2.5 text-sm font-medium text-ink-700 hover:bg-ink-100"
+              className="mx-3 mt-1 rounded-lg bg-brand-500 px-3 py-2.5 text-center text-sm font-semibold text-white hover:bg-brand-600"
             >
               Request Product
             </Link>
