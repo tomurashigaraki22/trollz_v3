@@ -19,6 +19,8 @@ import { updateSupportMessageStatus, deleteSupportMessage } from "@/lib/queries/
 import { createSeller, setSellerStatus, deleteSeller } from "@/lib/queries/sellers";
 import { updateReferralSettings } from "@/lib/queries/referrals";
 import { updateSellerApplicationStatus } from "@/lib/queries/sellerApplications";
+import { updateContactMessageStatus, deleteContactMessage } from "@/lib/queries/messages";
+import { createCoupon, updateCoupon, deleteCoupon, setCouponActive } from "@/lib/queries/coupons";
 
 export async function adminLoginAction(email, password) {
   const user = await findUserByEmail(email);
@@ -150,4 +152,41 @@ export async function updateSellerApplicationAction(id, { status, remarks }) {
   await updateSellerApplicationStatus(id, { status, remarks, verifiedBy: admin.name });
   revalidatePath("/admin/seller-applications");
   revalidatePath(`/admin/seller-applications/${id}`);
+}
+
+export async function resolveContactMessageAction(id, status) {
+  await requireAdmin();
+  await updateContactMessageStatus(id, status);
+  revalidatePath("/admin/messages");
+}
+
+export async function deleteContactMessageAction(id) {
+  await requireAdmin();
+  await deleteContactMessage(id);
+  revalidatePath("/admin/messages");
+}
+
+export async function createCouponAction(coupon) {
+  await requireAdmin();
+  const result = await createCoupon(coupon);
+  revalidatePath("/admin/coupons");
+  return result;
+}
+
+export async function updateCouponAction(id, coupon) {
+  await requireAdmin();
+  await updateCoupon(id, coupon);
+  revalidatePath("/admin/coupons");
+}
+
+export async function deleteCouponAction(id) {
+  await requireAdmin();
+  await deleteCoupon(id);
+  revalidatePath("/admin/coupons");
+}
+
+export async function setCouponActiveAction(id, active) {
+  await requireAdmin();
+  await setCouponActive(id, active);
+  revalidatePath("/admin/coupons");
 }

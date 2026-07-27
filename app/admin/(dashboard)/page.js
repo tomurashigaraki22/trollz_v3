@@ -1,28 +1,44 @@
 import Link from "next/link";
-import { ShoppingBag, Package, Users, Headset, ArrowRight } from "lucide-react";
+import { ShoppingBag, Package, Users, Headset, ShieldCheck, Mail, Search, Zap, ArrowRight } from "lucide-react";
 import { formatNaira } from "@/lib/mock/data";
 import { ORDER_STATUS_STYLES } from "@/lib/orderStatus";
 import { getCurrentUser } from "@/lib/session";
 import { getAllOrders } from "@/lib/queries/orders";
-import { getAllProductsForAdmin } from "@/lib/queries/admin-products";
+import { getAllProductsForAdmin, getFlashSaleProductsForAdmin } from "@/lib/queries/admin-products";
 import { getAllCustomers } from "@/lib/queries/users";
 import { getAllSupportMessages } from "@/lib/queries/support";
+import { getAllSellerApplications } from "@/lib/queries/sellerApplications";
+import { getAllContactMessages } from "@/lib/queries/messages";
+import { getProductRequests } from "@/lib/queries/productRequests";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboardPage() {
-  const [admin, orders, products, customers, supportMessages] = await Promise.all([
+  const [
+    admin,
+    orders,
+    products,
+    customers,
+    supportMessages,
+    sellerApplications,
+    contactMessages,
+    productRequests,
+    flashSaleProducts,
+  ] = await Promise.all([
     getCurrentUser(),
     getAllOrders(),
     getAllProductsForAdmin(),
     getAllCustomers(),
     getAllSupportMessages(),
+    getAllSellerApplications(),
+    getAllContactMessages(),
+    getProductRequests(),
+    getFlashSaleProductsForAdmin(),
   ]);
 
   const revenue = orders
     .filter((order) => order.order_status !== "cancelled")
     .reduce((sum, order) => sum + Number(order.total_amount), 0);
-  const openTickets = supportMessages.filter((message) => message.status === "open").length;
   const recentOrders = [...orders]
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
     .slice(0, 5);
@@ -33,6 +49,39 @@ export default async function AdminDashboardPage() {
     { label: "Products", value: products.length, icon: Package, href: "/admin/products" },
     { label: "Customers", value: customers.length, icon: Users, href: "/admin/users" },
   ];
+
+  const attentionItems = [
+    {
+      count: supportMessages.filter((m) => m.status === "open").length,
+      label: (n) => `${n} open support ticket${n === 1 ? "" : "s"} need attention.`,
+      href: "/admin/support",
+      icon: Headset,
+    },
+    {
+      count: sellerApplications.filter((a) => a.verification_status === "pending").length,
+      label: (n) => `${n} seller application${n === 1 ? "" : "s"} awaiting review.`,
+      href: "/admin/seller-applications",
+      icon: ShieldCheck,
+    },
+    {
+      count: contactMessages.filter((m) => (m.status || "new") === "new").length,
+      label: (n) => `${n} new contact message${n === 1 ? "" : "s"} unread.`,
+      href: "/admin/messages",
+      icon: Mail,
+    },
+    {
+      count: productRequests.filter((r) => r.status === "new").length,
+      label: (n) => `${n} new product request${n === 1 ? "" : "s"} to source.`,
+      href: "/admin/product-requests",
+      icon: Search,
+    },
+    {
+      count: flashSaleProducts.filter((p) => !p.is_active).length,
+      label: (n) => `${n} flash sale${n === 1 ? "" : "s"} expired — renew or remove.`,
+      href: "/admin/flash-sales",
+      icon: Zap,
+    },
+  ].filter((item) => item.count > 0);
 
   return (
     <div className="space-y-8">
@@ -55,17 +104,25 @@ export default async function AdminDashboardPage() {
         ))}
       </div>
 
-      {openTickets > 0 && (
-        <Link
-          href="/admin/support"
-          className="flex items-center justify-between rounded-2xl border border-warning/30 bg-warning/10 p-4 text-sm text-ink-800"
-        >
-          <span className="flex items-center gap-2">
-            <Headset className="h-4 w-4 text-warning" />
-            {openTickets} open support ticket{openTickets === 1 ? "" : "s"} need attention.
-          </span>
-          <ArrowRight className="h-4 w-4" />
-        </Link>
+      {attentionItems.length > 0 && (
+        <div>
+          <h2 className="mb-3 text-base font-semibold text-ink-900">Needs Attention</h2>
+          <div className="space-y-2">
+            {attentionItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="flex items-center justify-between rounded-2xl border border-warning/30 bg-warning/10 p-4 text-sm text-ink-800 transition-colors hover:bg-warning/15"
+              >
+                <span className="flex items-center gap-2">
+                  <item.icon className="h-4 w-4 text-warning" />
+                  {item.label(item.count)}
+                </span>
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            ))}
+          </div>
+        </div>
       )}
 
       <div>

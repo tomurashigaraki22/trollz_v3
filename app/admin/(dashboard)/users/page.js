@@ -21,6 +21,8 @@ export default async function AdminUsersPage() {
               <th className="px-4 py-3">Phone</th>
               <th className="px-4 py-3">Addresses</th>
               <th className="px-4 py-3">Orders</th>
+              <th className="px-4 py-3">Credits</th>
+              <th className="px-4 py-3">Loyalty Pts</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-ink-100">
@@ -31,11 +33,13 @@ export default async function AdminUsersPage() {
                 <td className="px-4 py-3 text-ink-500">{user.phone}</td>
                 <td className="px-4 py-3 text-ink-500">{user.address_count}</td>
                 <td className="px-4 py-3 text-ink-500">{user.order_count}</td>
+                <td className="px-4 py-3 text-ink-500">{Number(user.credits ?? 0).toLocaleString()}</td>
+                <td className="px-4 py-3 text-ink-500">{Number(user.loyalty_points ?? 0).toLocaleString()}</td>
               </tr>
             ))}
             {customers.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-sm text-ink-500">
+                <td colSpan={7} className="px-4 py-8 text-center text-sm text-ink-500">
                   No registered customers yet.
                 </td>
               </tr>
