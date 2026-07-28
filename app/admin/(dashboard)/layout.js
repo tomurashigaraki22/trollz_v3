@@ -12,11 +12,11 @@ export default async function AdminDashboardLayout({ children }) {
   }
 
   return (
-    <div className="flex min-h-screen bg-ink-50">
+    <div className="flex h-screen overflow-hidden bg-ink-50">
       <AdminSidebar admin={user} />
-      <div className="flex-1 overflow-x-hidden">
+      <main className="min-w-0 flex-1 overflow-y-auto overflow-x-hidden">
         <div className="mx-auto max-w-6xl px-6 py-8 sm:px-8">{children}</div>
-      </div>
+      </main>
     </div>
   );
 }

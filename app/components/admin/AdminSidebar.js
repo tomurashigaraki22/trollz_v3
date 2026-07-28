@@ -53,7 +53,7 @@ export default function AdminSidebar({ admin }) {
   }
 
   return (
-    <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r border-white/10 bg-ink-900 text-ink-300">
+    <aside className="flex h-screen w-64 shrink-0 flex-col overflow-hidden border-r border-white/10 bg-ink-900 text-ink-300">
       <div className="border-b border-white/10 px-5 py-5">
         <span className="text-lg font-extrabold tracking-tight text-white">
           Trollz<span className="text-brand-500">Admin</span>
@@ -61,7 +61,7 @@ export default function AdminSidebar({ admin }) {
         <p className="mt-1 truncate text-xs text-ink-500">{admin?.email}</p>
       </div>
 
-      <nav className="flex-1 space-y-1 px-3 py-4">
+      <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 py-4">
         {links.map((link) => {
           const isActive = link.exact ? pathname === link.href : pathname.startsWith(link.href);
           return (
@@ -79,7 +79,7 @@ export default function AdminSidebar({ admin }) {
         })}
       </nav>
 
-      <div className="space-y-1 border-t border-white/10 px-3 py-4">
+      <div className="shrink-0 space-y-1 border-t border-white/10 px-3 py-4">
         <Link
           href="/"
           target="_blank"
