@@ -39,6 +39,7 @@ const links = [
   { href: "/admin/support", label: "Support Inbox", icon: Headset },
   { href: "/admin/messages", label: "Contact Messages", icon: MessageSquare },
   { href: "/admin/newsletter", label: "Newsletter", icon: Mail },
+  { href: "/admin/emails", label: "Email Campaigns", icon: Mail },
 ];
 
 export default function AdminSidebar({ admin }) {

@@ -21,6 +21,7 @@ import { updateReferralSettings } from "@/lib/queries/referrals";
 import { updateSellerApplicationStatus } from "@/lib/queries/sellerApplications";
 import { updateContactMessageStatus, deleteContactMessage } from "@/lib/queries/messages";
 import { createCoupon, updateCoupon, deleteCoupon, setCouponActive } from "@/lib/queries/coupons";
+import { sendEmailCampaign } from "@/lib/mail/campaigns";
 
 export async function adminLoginAction(email, password) {
   const user = await findUserByEmail(email);
@@ -189,4 +190,27 @@ export async function setCouponActiveAction(id, active) {
   await requireAdmin();
   await setCouponActive(id, active);
   revalidatePath("/admin/coupons");
+}
+
+export async function sendEmailCampaignAction(campaign) {
+  await requireAdmin();
+  const subject = String(campaign.subject || "").trim();
+  const body = String(campaign.body || "").trim();
+  if (!subject) return { ok: false, error: "Enter an email subject." };
+  if (!body) return { ok: false, error: "Enter the email message." };
+
+  try {
+    const result = await sendEmailCampaign({
+      target: campaign.target || "customers",
+      manualEmails: campaign.manualEmails || "",
+      templateId: campaign.templateId || "announcement",
+      subject,
+      body,
+      ctaLabel: campaign.ctaLabel || "",
+      ctaUrl: campaign.ctaUrl || "",
+    });
+    return { ok: true, ...result };
+  } catch (error) {
+    return { ok: false, error: error.message || "Could not send email campaign." };
+  }
 }
