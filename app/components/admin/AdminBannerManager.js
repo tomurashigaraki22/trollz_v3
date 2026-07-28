@@ -1,8 +1,7 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { Upload, RotateCcw, Monitor, Smartphone } from "lucide-react";
 import Button from "../ui/Button";
 import { uploadBannerImageAction, resetBannerAction } from "@/app/actions/banner";
@@ -11,13 +10,21 @@ function BannerSlot({ label, icon: Icon, currentUrl, slot, onUploaded }) {
   const inputRef = useRef(null);
   const [, startTransition] = useTransition();
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState(currentUrl);
   const router = useRouter();
 
+  useEffect(() => {
+    setPreviewUrl(currentUrl);
+  }, [currentUrl]);
+
   function handleFileChange(event) {
-    const file = event.target.files?.[0];
+    const input = event.target;
+    const file = input.files?.[0];
     if (!file) return;
     setError("");
+    setSuccess("");
     setUploading(true);
 
     const formData = new FormData();
@@ -25,14 +32,22 @@ function BannerSlot({ label, icon: Icon, currentUrl, slot, onUploaded }) {
     formData.set("file", file);
 
     startTransition(async () => {
-      const result = await uploadBannerImageAction(formData);
-      setUploading(false);
-      if (!result.ok) {
-        setError(result.error);
-        return;
+      try {
+        const result = await uploadBannerImageAction(formData);
+        if (!result.ok) {
+          setError(result.error);
+          return;
+        }
+        setPreviewUrl(result.url);
+        setSuccess("Uploaded to Cloudinary and saved.");
+        onUploaded?.();
+        router.refresh();
+      } catch (err) {
+        setError(err.message || "Could not upload banner image.");
+      } finally {
+        setUploading(false);
+        input.value = "";
       }
-      onUploaded?.();
-      router.refresh();
     });
   }
 
@@ -43,14 +58,11 @@ function BannerSlot({ label, icon: Icon, currentUrl, slot, onUploaded }) {
       </div>
 
       <div className="mt-3 aspect-[16/7] overflow-hidden rounded-xl border border-ink-100 bg-ink-50">
-        {currentUrl ? (
-          <Image
-            src={currentUrl}
+        {previewUrl ? (
+          <img
+            src={previewUrl}
             alt={`${label} banner preview`}
-            width={800}
-            height={350}
             className="h-full w-full object-cover"
-            unoptimized
           />
         ) : (
           <div className="flex h-full items-center justify-center text-xs text-ink-400">
@@ -77,6 +89,12 @@ function BannerSlot({ label, icon: Icon, currentUrl, slot, onUploaded }) {
         <Upload className="h-4 w-4" /> {uploading ? "Uploading..." : "Upload Image"}
       </Button>
       {error && <p className="mt-2 text-xs text-danger">{error}</p>}
+      {success && (
+        <div className="mt-2 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
+          <p className="font-semibold">{success}</p>
+          {previewUrl && <p className="mt-1 break-all text-emerald-600">{previewUrl}</p>}
+        </div>
+      )}
     </div>
   );
 }

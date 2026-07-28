@@ -11,29 +11,33 @@ export default async function Hero() {
   const mobileUrl = banner.mobile_image_url;
   const hasCustomBanner = Boolean(desktopUrl || mobileUrl);
 
+  if (hasCustomBanner) {
+    const fallbackUrl = desktopUrl ?? mobileUrl;
+
+    return (
+      <section className="bg-ink-950">
+        <picture>
+          {mobileUrl && <source media="(max-width: 639px)" srcSet={mobileUrl} />}
+          <img
+            src={fallbackUrl}
+            alt="Trollz Store banner"
+            className="aspect-[4/3] w-full object-cover sm:aspect-[1920/520]"
+            fetchPriority="high"
+          />
+        </picture>
+      </section>
+    );
+  }
+
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-ink-900 via-ink-900 to-brand-800">
-      {hasCustomBanner ? (
-        <>
-          <div
-            className="absolute inset-0 hidden bg-cover bg-center sm:block"
-            style={{ backgroundImage: `url(${desktopUrl ?? mobileUrl})` }}
-          />
-          <div
-            className="absolute inset-0 bg-cover bg-center sm:hidden"
-            style={{ backgroundImage: `url(${mobileUrl ?? desktopUrl})` }}
-          />
-          <div className="absolute inset-0 bg-black/45" />
-        </>
-      ) : (
-        <div
-          className="absolute inset-0 opacity-20"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle at 20% 20%, var(--color-brand-400) 0, transparent 45%), radial-gradient(circle at 80% 60%, var(--color-brand-500) 0, transparent 40%)",
-          }}
-        />
-      )}
+      <div
+        className="absolute inset-0 opacity-20"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle at 20% 20%, var(--color-brand-400) 0, transparent 45%), radial-gradient(circle at 80% 60%, var(--color-brand-500) 0, transparent 40%)",
+        }}
+      />
       <Container className="relative flex flex-col items-start gap-6 py-20 sm:py-28 lg:py-32">
         <span className="rounded-full bg-white/10 px-4 py-1.5 text-xs font-semibold tracking-wide text-brand-200 uppercase">
           Nigeria&apos;s everyday shopping destination
