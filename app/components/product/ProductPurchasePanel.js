@@ -8,6 +8,22 @@ import { useCart } from "../cart/CartProvider";
 import { useWishlist } from "../wishlist/WishlistProvider";
 import { useCompare } from "../compare/CompareProvider";
 
+const ATTRIBUTE_LABELS = {
+  brand: "Brand",
+  gender: "Gender",
+  storage: "Storage",
+  ram: "RAM",
+  condition: "Condition",
+  skinType: "Skin Type",
+  material: "Material",
+  warranty: "Warranty",
+};
+
+function displayValue(value) {
+  if (Array.isArray(value)) return value.filter(Boolean).join(", ");
+  return String(value ?? "").trim();
+}
+
 export default function ProductPurchasePanel({ product }) {
   const { addItem } = useCart();
   const { toggle, isWishlisted } = useWishlist();
@@ -24,6 +40,9 @@ export default function ProductPurchasePanel({ product }) {
   const inStock = product.qty > 0;
   const hasSizes = product.sizeOptions?.length > 1;
   const hasColors = product.colorOptions?.length > 1;
+  const specs = Object.entries(product.attributes ?? {})
+    .map(([key, value]) => [ATTRIBUTE_LABELS[key] ?? key.replace(/_/g, " "), displayValue(value)])
+    .filter(([, value]) => value);
 
   function handleAddToCart() {
     if (hasSizes && !size) {
@@ -47,6 +66,20 @@ export default function ProductPurchasePanel({ product }) {
 
   return (
     <div className="space-y-5">
+      {specs.length > 0 && (
+        <div className="rounded-xl border border-ink-100 bg-ink-50 p-4">
+          <h2 className="text-sm font-semibold text-ink-900">Product details</h2>
+          <dl className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {specs.map(([label, value]) => (
+              <div key={label}>
+                <dt className="text-xs font-semibold uppercase text-ink-400">{label}</dt>
+                <dd className="mt-0.5 text-sm font-medium text-ink-800">{value}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      )}
+
       {hasSizes && (
         <div>
           <label htmlFor="size" className="text-sm font-medium text-ink-800">

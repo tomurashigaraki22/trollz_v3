@@ -88,6 +88,8 @@ export default function CheckoutClient({ user, addresses, creditBalance = 0, cre
         name: line.product.item,
         qty: line.qty,
         price: line.unitPrice,
+        size: line.size,
+        color: line.color,
       })),
       total,
       creditsToApply,
@@ -227,9 +229,20 @@ export default function CheckoutClient({ user, addresses, creditBalance = 0, cre
             <h2 className="text-base font-semibold text-ink-900">Order Items</h2>
             <div className="mt-4 divide-y divide-ink-100">
               {lines.map((line) => (
-                <div key={line.lineId} className="flex items-center justify-between py-3 text-sm">
+                <div key={line.lineId} className="flex items-center justify-between gap-4 py-3 text-sm">
                   <span className="text-ink-700">
-                    {line.product.item} × {line.qty}
+                    <span className="font-medium text-ink-900">
+                      {line.product.item} x {line.qty}
+                    </span>
+                    {(line.size || line.color) && (
+                      <span className="mt-0.5 block text-xs text-ink-500">
+                        {line.size && line.size !== "Standard" ? `Size: ${line.size}` : ""}
+                        {line.size && line.size !== "Standard" && line.color && line.color !== "Default"
+                          ? " | "
+                          : ""}
+                        {line.color && line.color !== "Default" ? `Color: ${line.color}` : ""}
+                      </span>
+                    )}
                   </span>
                   <span className="font-medium text-ink-900">{formatNaira(line.lineTotal)}</span>
                 </div>
