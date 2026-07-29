@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Lock, ShieldCheck } from "lucide-react";
 import Section from "../ui/Section";
@@ -10,7 +10,11 @@ import AddressForm from "../account/AddressForm";
 import { formatNaira } from "@/lib/mock/data";
 import { useCart } from "../cart/CartProvider";
 import { addAddressAction } from "@/app/actions/account";
-import { placeOrderAction, validateCouponAction } from "@/app/actions/orders";
+import {
+  calculateDeliveryOptionsAction,
+  placeOrderAction,
+  validateCouponAction,
+} from "@/app/actions/orders";
 
 function toFormShape(address) {
   return {
@@ -34,7 +38,7 @@ function addressToText(address) {
 
 export default function CheckoutClient({ user, addresses, creditBalance = 0, creditValueNgn = 0 }) {
   const router = useRouter();
-  const { lines, subtotal, shippingFee, total } = useCart();
+  const { lines, subtotal } = useCart();
 
   const [selectedAddressId, setSelectedAddressId] = useState(
     addresses.find((address) => address.is_default)?.id ?? addresses[0]?.id ?? null
@@ -49,10 +53,31 @@ export default function CheckoutClient({ user, addresses, creditBalance = 0, cre
   const [coupon, setCoupon] = useState(null);
   const [couponError, setCouponError] = useState("");
   const [checkingCoupon, setCheckingCoupon] = useState(false);
+  const [deliveryOptions, setDeliveryOptions] = useState([]);
+  const [deliveryMode, setDeliveryMode] = useState("standard");
+  const [deliveryLoading, setDeliveryLoading] = useState(false);
+  const [deliveryError, setDeliveryError] = useState("");
+
+  const cartItems = useMemo(
+    () =>
+      lines.map((line) => ({
+        productId: line.product.id,
+        name: line.product.item,
+        qty: line.qty,
+        price: line.unitPrice,
+        size: line.size,
+        color: line.color,
+      })),
+    [lines]
+  );
 
   const availableCreditValue = creditBalance * creditValueNgn;
   const couponDiscount = coupon?.discount ?? 0;
-  const totalAfterCoupon = Math.max(0, total - couponDiscount);
+  const selectedDelivery =
+    deliveryOptions.find((option) => option.mode === deliveryMode) ?? deliveryOptions[0];
+  const dynamicShippingFee = Number(selectedDelivery?.fee ?? 0);
+  const totalBeforeDiscount = subtotal + dynamicShippingFee;
+  const totalAfterCoupon = Math.max(0, totalBeforeDiscount - couponDiscount);
   const creditDiscount = useCredits ? Math.min(availableCreditValue, totalAfterCoupon) : 0;
   const creditsToApply = creditValueNgn > 0 ? creditDiscount / creditValueNgn : 0;
   const amountDue = totalAfterCoupon - creditDiscount;
@@ -62,6 +87,33 @@ export default function CheckoutClient({ user, addresses, creditBalance = 0, cre
     const address = addresses.find((entry) => entry.id === selectedAddressId);
     return address ? toFormShape(address) : null;
   }, [addingNew, newAddress, addresses, selectedAddressId]);
+
+  useEffect(() => {
+    if (!shippingAddress || cartItems.length === 0) {
+      setDeliveryOptions([]);
+      return;
+    }
+    let cancelled = false;
+    setDeliveryLoading(true);
+    setDeliveryError("");
+    calculateDeliveryOptionsAction({ address: shippingAddress, items: cartItems, subtotal })
+      .then((options) => {
+        if (cancelled) return;
+        setDeliveryOptions(options ?? []);
+        if (options?.length && !options.some((option) => option.mode === deliveryMode)) {
+          setDeliveryMode(options[0].mode);
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) setDeliveryError(error.message || "Could not calculate delivery fee.");
+      })
+      .finally(() => {
+        if (!cancelled) setDeliveryLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [shippingAddress, cartItems, subtotal, deliveryMode]);
 
   async function handleNewAddressSubmit(form) {
     setNewAddress(form);
@@ -83,15 +135,12 @@ export default function CheckoutClient({ user, addresses, creditBalance = 0, cre
     const result = await placeOrderAction({
       addressId: !addingNew ? selectedAddressId : null,
       addressText: addressToText(shippingAddress),
-      items: lines.map((line) => ({
-        productId: line.product.id,
-        name: line.product.item,
-        qty: line.qty,
-        price: line.unitPrice,
-        size: line.size,
-        color: line.color,
-      })),
-      total,
+      address: shippingAddress,
+      items: cartItems,
+      subtotal,
+      total: totalBeforeDiscount,
+      deliveryMode: selectedDelivery?.mode ?? deliveryMode,
+      deliveryZoneId: selectedDelivery?.zoneId ?? null,
       creditsToApply,
       couponCode: coupon?.code ?? "",
     });
@@ -115,7 +164,7 @@ export default function CheckoutClient({ user, addresses, creditBalance = 0, cre
   async function handleApplyCoupon() {
     setCheckingCoupon(true);
     setCouponError("");
-    const result = await validateCouponAction({ code: couponCode, subtotal: total });
+    const result = await validateCouponAction({ code: couponCode, subtotal });
     setCheckingCoupon(false);
     if (!result.ok) {
       setCoupon(null);
@@ -226,6 +275,51 @@ export default function CheckoutClient({ user, addresses, creditBalance = 0, cre
           </Card>
 
           <Card className="p-6">
+            <h2 className="text-base font-semibold text-ink-900">Delivery Method</h2>
+            {!shippingAddress && (
+              <p className="mt-3 text-sm text-ink-500">Select or add a shipping address to calculate delivery.</p>
+            )}
+            {deliveryLoading && <p className="mt-3 text-sm text-ink-500">Calculating delivery options...</p>}
+            {deliveryError && <p className="mt-3 text-sm text-danger">{deliveryError}</p>}
+            {deliveryOptions.length > 0 && (
+              <div className="mt-4 space-y-3">
+                {deliveryOptions.map((option) => (
+                  <label
+                    key={option.mode}
+                    className={`flex cursor-pointer items-start justify-between gap-4 rounded-xl border p-4 text-sm transition-colors ${
+                      deliveryMode === option.mode
+                        ? "border-brand-500 bg-brand-50/40"
+                        : "border-ink-200 hover:border-ink-300"
+                    }`}
+                  >
+                    <span className="flex gap-3">
+                      <input
+                        type="radio"
+                        name="deliveryMode"
+                        checked={deliveryMode === option.mode}
+                        onChange={() => setDeliveryMode(option.mode)}
+                        className="mt-1 accent-brand-500"
+                      />
+                      <span>
+                        <span className="block font-semibold text-ink-900">{option.label}</span>
+                        <span className="mt-1 block text-ink-500">{option.description}</span>
+                        <span className="mt-1 block text-xs text-ink-400">
+                          {option.zoneName} | {option.sellerCount} seller
+                          {option.sellerCount === 1 ? "" : "s"} | ETA {option.minDays}-{option.maxDays} day
+                          {option.maxDays === 1 ? "" : "s"}
+                        </span>
+                      </span>
+                    </span>
+                    <span className="shrink-0 font-bold text-ink-900">
+                      {option.fee === 0 ? "Free" : formatNaira(option.fee)}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </Card>
+
+          <Card className="p-6">
             <h2 className="text-base font-semibold text-ink-900">Order Items</h2>
             <div className="mt-4 divide-y divide-ink-100">
               {lines.map((line) => (
@@ -259,9 +353,15 @@ export default function CheckoutClient({ user, addresses, creditBalance = 0, cre
               <span>{formatNaira(subtotal)}</span>
             </div>
             <div className="flex justify-between text-ink-600">
-              <span>Shipping</span>
-              <span>{shippingFee === 0 ? "Free" : formatNaira(shippingFee)}</span>
+              <span>Delivery</span>
+              <span>{dynamicShippingFee === 0 ? "Free" : formatNaira(dynamicShippingFee)}</span>
             </div>
+            {selectedDelivery && (
+              <p className="text-xs text-ink-400">
+                {selectedDelivery.label}: {selectedDelivery.zoneName}, ETA {selectedDelivery.minDays}-
+                {selectedDelivery.maxDays} days
+              </p>
+            )}
             {couponDiscount > 0 && (
               <div className="flex justify-between text-success">
                 <span>Coupon {coupon.code}</span>
@@ -333,7 +433,7 @@ export default function CheckoutClient({ user, addresses, creditBalance = 0, cre
             type="button"
             size="lg"
             className="mt-6 w-full"
-            disabled={!shippingAddress || submitting}
+            disabled={!shippingAddress || !selectedDelivery || submitting}
             onClick={handlePayNow}
           >
             <Lock className="h-4 w-4" />

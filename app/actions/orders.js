@@ -11,15 +11,12 @@ import {
 } from "@/lib/queries/orders";
 import { getUserCredits, getReferralSettings } from "@/lib/queries/referrals";
 import { validateCoupon } from "@/lib/queries/coupons";
+import { calculateDeliveryOptions } from "@/lib/queries/delivery";
 import { initializePayment, verifyTransactionByReference } from "@/lib/flutterwave";
 import { SITE_URL } from "@/lib/site";
 
 const HARD_FAILURE_STATUSES = new Set(["failed", "cancelled", "abandoned", "declined"]);
 
-// Polled by the /checkout/pending page while a bank transfer settles. Does
-// its own re-verification with Flutterwave on every call rather than just
-// reading whatever the webhook last wrote — so payment still confirms even
-// if the webhook is misconfigured or never arrives.
 export async function checkOrderPaymentStatusAction(txRef) {
   const user = await requireUser();
   const order = await getOrderByTransactionId(txRef);
@@ -69,22 +66,42 @@ export async function validateCouponAction({ code, subtotal }) {
   };
 }
 
+export async function calculateDeliveryOptionsAction({ address, items, subtotal, deliveryZoneId = null }) {
+  await requireUser();
+  return calculateDeliveryOptions({ address, lines: items ?? [], subtotal, deliveryZoneId });
+}
+
 export async function placeOrderAction({
   addressId,
   addressText,
+  address,
   items,
+  subtotal,
   total,
+  deliveryMode = "standard",
+  deliveryZoneId = null,
   creditsToApply = 0,
   couponCode = "",
 }) {
   const user = await requireUser();
+  const orderSubtotal = Number(subtotal ?? total ?? 0);
+  const deliveryOptions = await calculateDeliveryOptions({
+    address,
+    lines: items ?? [],
+    subtotal: orderSubtotal,
+    deliveryZoneId,
+  });
+  const selectedDelivery =
+    deliveryOptions.find((option) => option.mode === deliveryMode) ?? deliveryOptions[0];
+  if (!selectedDelivery) return { ok: false, error: "Delivery is not available for this address." };
 
-  // Never trust a client-supplied discount — reclamp against the real
-  // balance and the admin-configured conversion rate.
+  const deliveryFee = Number(selectedDelivery.fee || 0);
+  const payableBeforeDiscount = orderSubtotal + deliveryFee;
+
   const [balance, settings, couponResult] = await Promise.all([
     getUserCredits(user.id),
     getReferralSettings(),
-    validateCoupon({ code: couponCode, subtotal: total, userId: user.id }),
+    validateCoupon({ code: couponCode, subtotal: orderSubtotal, userId: user.id }),
   ]);
   if (!couponResult.ok) return couponResult;
 
@@ -92,10 +109,10 @@ export async function placeOrderAction({
   const creditValueNgn = Number(settings.credit_value_ngn);
   const requestedCredits = Math.max(0, Math.min(Number(creditsToApply) || 0, balance));
   const maxDiscount = requestedCredits * creditValueNgn;
-  const discountableAfterCoupon = Math.max(0, total - couponDiscount);
+  const discountableAfterCoupon = Math.max(0, payableBeforeDiscount - couponDiscount);
   const discount = Math.min(maxDiscount, discountableAfterCoupon);
   const creditsUsed = creditValueNgn > 0 ? discount / creditValueNgn : 0;
-  const discountedTotal = Math.max(0, total - couponDiscount - discount);
+  const discountedTotal = Math.max(0, payableBeforeDiscount - couponDiscount - discount);
 
   const transactionId = `TS_${Date.now()}_${user.id}`;
 
@@ -105,6 +122,13 @@ export async function placeOrderAction({
     addressText,
     items,
     total: discountedTotal,
+    subtotal: orderSubtotal,
+    deliveryFee,
+    deliveryMode: selectedDelivery.mode,
+    deliveryZoneId: selectedDelivery.zoneId,
+    deliveryZoneName: selectedDelivery.zoneName,
+    estimatedDeliveryMin: selectedDelivery.minDays,
+    estimatedDeliveryMax: selectedDelivery.maxDays,
     paymentMethod: discountedTotal === 0 ? "store-credit" : "flutterwave",
     transactionId,
     creditsUsed,

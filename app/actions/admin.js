@@ -22,6 +22,7 @@ import { updateSellerApplicationStatus } from "@/lib/queries/sellerApplications"
 import { updateContactMessageStatus, deleteContactMessage } from "@/lib/queries/messages";
 import { createCoupon, updateCoupon, deleteCoupon, setCouponActive } from "@/lib/queries/coupons";
 import { sendEmailCampaign, sendTestEmailCampaign } from "@/lib/mail/campaigns";
+import { saveDeliveryZone, updateDeliveryZone } from "@/lib/queries/delivery";
 
 export async function adminLoginAction(email, password) {
   const user = await findUserByEmail(email);
@@ -237,4 +238,37 @@ export async function sendTestEmailCampaignAction(campaign) {
   } catch (error) {
     return { ok: false, error: error.message || "Could not send test email." };
   }
+}
+
+function normalizeDeliveryZone(formData) {
+  return {
+    name: String(formData.get("name") || "").trim(),
+    state: String(formData.get("state") || "").trim(),
+    cities: String(formData.get("cities") || "").trim(),
+    baseFee: Number(formData.get("baseFee") || 0),
+    expressFee: Number(formData.get("expressFee") || 0),
+    extraSellerFee: Number(formData.get("extraSellerFee") || 0),
+    interZoneFee: Number(formData.get("interZoneFee") || 0),
+    batchDiscount: Number(formData.get("batchDiscount") || 0),
+    freeThreshold: Number(formData.get("freeThreshold") || 0),
+    standardMinDays: Number(formData.get("standardMinDays") || 1),
+    standardMaxDays: Number(formData.get("standardMaxDays") || 3),
+    expressMinDays: Number(formData.get("expressMinDays") || 0),
+    expressMaxDays: Number(formData.get("expressMaxDays") || 1),
+    isActive: formData.get("isActive") === "on",
+  };
+}
+
+export async function saveDeliveryZoneAction(formData) {
+  await requireAdmin();
+  const zone = normalizeDeliveryZone(formData);
+  if (!zone.name) return { ok: false, error: "Enter a zone name." };
+  const id = formData.get("id");
+  if (id) {
+    await updateDeliveryZone(id, zone);
+  } else {
+    await saveDeliveryZone(zone);
+  }
+  revalidatePath("/admin/delivery");
+  return { ok: true };
 }

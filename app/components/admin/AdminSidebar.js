@@ -20,6 +20,7 @@ import {
   Ticket,
   Mail,
   MessageSquare,
+  Truck,
 } from "lucide-react";
 import { adminLogoutAction } from "@/app/actions/admin";
 
@@ -30,6 +31,7 @@ const links = [
   { href: "/admin/categories", label: "Categories", icon: FolderTree },
   { href: "/admin/flash-sales", label: "Flash Sales", icon: Zap },
   { href: "/admin/coupons", label: "Coupons", icon: Ticket },
+  { href: "/admin/delivery", label: "Delivery Pricing", icon: Truck },
   { href: "/admin/referrals", label: "Referrals & Credit", icon: Gift },
   { href: "/admin/sellers", label: "Sellers", icon: Store },
   { href: "/admin/seller-applications", label: "Seller Applications", icon: ShieldCheck },
