@@ -14,7 +14,8 @@ export default function AdminEmailsPage() {
       </div>
 
       <div className="rounded-2xl border border-warning/30 bg-warning/10 p-4 text-sm text-ink-800">
-        Add the Gmail app password on the server as <code>GMAIL_APP_PASSWORD</code> before sending.
+        Gmail sending is configured for <strong>trollz.mallstore@gmail.com</strong>. Send a test
+        email before launching a full campaign.
       </div>
 
       <AdminEmailCampaignForm templates={EMAIL_TEMPLATES} />

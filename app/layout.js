@@ -1,3 +1,4 @@
+import WatchupInit from "./components/WatchupInit";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import SiteChrome from "./components/layout/SiteChrome";
@@ -65,7 +66,9 @@ export default async function RootLayout({ children }) {
           <CartProvider>
             <WishlistProvider>
               <CompareProvider>
-                <SiteChrome>{children}</SiteChrome>
+                <SiteChrome>
+                  <WatchupInit>{children}</WatchupInit>
+                </SiteChrome>
               </CompareProvider>
             </WishlistProvider>
           </CartProvider>

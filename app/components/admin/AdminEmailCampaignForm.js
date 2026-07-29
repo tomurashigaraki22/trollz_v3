@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { Mail, Send, Users, Eye } from "lucide-react";
-import { sendEmailCampaignAction } from "@/app/actions/admin";
+import { sendEmailCampaignAction, sendTestEmailCampaignAction } from "@/app/actions/admin";
 
 export default function AdminEmailCampaignForm({ templates }) {
   const [form, setForm] = useState({
@@ -15,7 +15,10 @@ export default function AdminEmailCampaignForm({ templates }) {
     ctaUrl: templates[0]?.ctaUrl ?? "",
   });
   const [result, setResult] = useState(null);
+  const [testEmail, setTestEmail] = useState("");
+  const [testResult, setTestResult] = useState(null);
   const [pending, startTransition] = useTransition();
+  const [testPending, startTestTransition] = useTransition();
 
   const template = templates.find((item) => item.id === form.templateId) ?? templates[0];
 
@@ -49,6 +52,14 @@ export default function AdminEmailCampaignForm({ templates }) {
     startTransition(async () => {
       const response = await sendEmailCampaignAction(form);
       setResult(response);
+    });
+  }
+
+  function handleSendTest() {
+    setTestResult(null);
+    startTestTransition(async () => {
+      const response = await sendTestEmailCampaignAction({ ...form, testEmail });
+      setTestResult(response);
     });
   }
 
@@ -163,6 +174,42 @@ export default function AdminEmailCampaignForm({ templates }) {
               : result.error}
           </div>
         )}
+
+        <div className="rounded-2xl border border-ink-100 bg-white p-5">
+          <h2 className="font-semibold text-ink-900">Test send</h2>
+          <p className="mt-1 text-sm text-ink-500">
+            Send this exact campaign to one email first.
+          </p>
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+            <input
+              type="email"
+              value={testEmail}
+              onChange={(event) => setTestEmail(event.target.value)}
+              placeholder="test@example.com"
+              className="min-w-0 flex-1 rounded-xl border border-ink-200 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
+            />
+            <button
+              type="button"
+              disabled={testPending}
+              onClick={handleSendTest}
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-ink-200 px-5 py-2.5 text-sm font-semibold text-ink-800 hover:border-brand-500 hover:text-brand-600 disabled:opacity-50"
+            >
+              <Send className="h-4 w-4" />
+              {testPending ? "Sending test..." : "Send test"}
+            </button>
+          </div>
+          {testResult && (
+            <div
+              className={`mt-3 rounded-xl border p-3 text-sm ${
+                testResult.ok
+                  ? "border-success/30 bg-success/10 text-success"
+                  : "border-danger/30 bg-danger/10 text-danger"
+              }`}
+            >
+              {testResult.ok ? `Test email sent to ${testEmail}.` : testResult.error}
+            </div>
+          )}
+        </div>
 
         <button
           type="submit"

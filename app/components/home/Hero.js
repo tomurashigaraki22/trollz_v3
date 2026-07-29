@@ -1,36 +1,14 @@
 import { ArrowRight } from "lucide-react";
 import Container from "../ui/Container";
 import Button from "../ui/Button";
+import BannerCarousel from "./BannerCarousel";
 import { getBanner } from "@/lib/queries/banner";
 
 export const dynamic = "force-dynamic";
 
-export default async function Hero() {
-  const banner = await getBanner();
-  const desktopUrl = banner.desktop_image_url;
-  const mobileUrl = banner.mobile_image_url;
-  const hasCustomBanner = Boolean(desktopUrl || mobileUrl);
-
-  if (hasCustomBanner) {
-    const fallbackUrl = desktopUrl ?? mobileUrl;
-
-    return (
-      <section className="bg-ink-950">
-        <picture>
-          {mobileUrl && <source media="(max-width: 639px)" srcSet={mobileUrl} />}
-          <img
-            src={fallbackUrl}
-            alt="Trollz Store banner"
-            className="aspect-[4/3] w-full object-cover sm:aspect-[1920/520]"
-            fetchPriority="high"
-          />
-        </picture>
-      </section>
-    );
-  }
-
+function DefaultHero({ className = "" }) {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-ink-900 via-ink-900 to-brand-800">
+    <section className={`relative overflow-hidden bg-gradient-to-br from-ink-900 via-ink-900 to-brand-800 ${className}`}>
       <div
         className="absolute inset-0 opacity-20"
         style={{
@@ -61,4 +39,39 @@ export default async function Hero() {
       </Container>
     </section>
   );
+}
+
+export default async function Hero() {
+  const banner = await getBanner();
+  const desktopImages = banner.desktop_image_urls ?? [];
+  const mobileImages = banner.mobile_image_urls ?? [];
+  const hasCustomBanner = desktopImages.length > 0 || mobileImages.length > 0;
+
+  if (hasCustomBanner) {
+    return (
+      <>
+        {mobileImages.length > 0 ? (
+          <BannerCarousel
+            images={mobileImages}
+            alt="Trollz Store mobile banner"
+            className="aspect-[4/3] sm:hidden"
+          />
+        ) : (
+          <DefaultHero className="sm:hidden" />
+        )}
+
+        {desktopImages.length > 0 ? (
+          <BannerCarousel
+            images={desktopImages}
+            alt="Trollz Store desktop banner"
+            className="hidden aspect-[1920/520] sm:block"
+          />
+        ) : (
+          <DefaultHero className="hidden sm:block" />
+        )}
+      </>
+    );
+  }
+
+  return <DefaultHero />;
 }

@@ -6,18 +6,18 @@ import { Upload, RotateCcw, Monitor, Smartphone } from "lucide-react";
 import Button from "../ui/Button";
 import { uploadBannerImageAction, resetBannerAction } from "@/app/actions/banner";
 
-function BannerSlot({ label, icon: Icon, currentUrl, slot, onUploaded }) {
+function BannerSlot({ label, icon: Icon, currentUrls = [], slot, onUploaded }) {
   const inputRef = useRef(null);
   const [, startTransition] = useTransition();
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [uploading, setUploading] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState(currentUrl);
+  const [previewUrls, setPreviewUrls] = useState(currentUrls);
   const router = useRouter();
 
   useEffect(() => {
-    setPreviewUrl(currentUrl);
-  }, [currentUrl]);
+    setPreviewUrls(currentUrls);
+  }, [currentUrls]);
 
   function handleFileChange(event) {
     const input = event.target;
@@ -38,8 +38,8 @@ function BannerSlot({ label, icon: Icon, currentUrl, slot, onUploaded }) {
           setError(result.error);
           return;
         }
-        setPreviewUrl(result.url);
-        setSuccess("Uploaded to Cloudinary and saved.");
+        setPreviewUrls((urls) => [...urls.filter((url) => url !== result.url), result.url]);
+        setSuccess("Uploaded to Cloudinary and added to this carousel.");
         onUploaded?.();
         router.refresh();
       } catch (err) {
@@ -58,12 +58,17 @@ function BannerSlot({ label, icon: Icon, currentUrl, slot, onUploaded }) {
       </div>
 
       <div className="mt-3 aspect-[16/7] overflow-hidden rounded-xl border border-ink-100 bg-ink-50">
-        {previewUrl ? (
-          <img
-            src={previewUrl}
-            alt={`${label} banner preview`}
-            className="h-full w-full object-cover"
-          />
+        {previewUrls.length > 0 ? (
+          <div className="grid h-full grid-cols-2 gap-1 bg-ink-100 p-1">
+            {previewUrls.slice(0, 4).map((url, index) => (
+              <img
+                key={`${url}-${index}`}
+                src={url}
+                alt={`${label} slide ${index + 1}`}
+                className="h-full min-h-0 w-full rounded-lg object-cover"
+              />
+            ))}
+          </div>
         ) : (
           <div className="flex h-full items-center justify-center text-xs text-ink-400">
             Using default gradient
@@ -86,13 +91,16 @@ function BannerSlot({ label, icon: Icon, currentUrl, slot, onUploaded }) {
         disabled={uploading}
         onClick={() => inputRef.current?.click()}
       >
-        <Upload className="h-4 w-4" /> {uploading ? "Uploading..." : "Upload Image"}
+        <Upload className="h-4 w-4" /> {uploading ? "Uploading..." : "Add Slide"}
       </Button>
+      <p className="mt-2 text-xs text-ink-400">
+        {previewUrls.length} slide{previewUrls.length === 1 ? "" : "s"} active
+      </p>
       {error && <p className="mt-2 text-xs text-danger">{error}</p>}
       {success && (
         <div className="mt-2 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
           <p className="font-semibold">{success}</p>
-          {previewUrl && <p className="mt-1 break-all text-emerald-600">{previewUrl}</p>}
+          {previewUrls.at(-1) && <p className="mt-1 break-all text-emerald-600">{previewUrls.at(-1)}</p>}
         </div>
       )}
     </div>
@@ -120,8 +128,8 @@ export default function AdminBannerManager({ banner }) {
         <div>
           <h1 className="text-xl font-bold text-ink-900">Homepage Banner</h1>
           <p className="mt-1 text-sm text-ink-500">
-            Upload separate images for desktop and mobile, or leave a slot empty to fall back to
-            the default gradient.
+            Add multiple slides for desktop and mobile. Each side has its own carousel and falls
+            back to the default gradient only when that side has no slides.
           </p>
         </div>
         <Button type="button" variant="outline" size="sm" disabled={resetting} onClick={handleReset}>
@@ -134,13 +142,13 @@ export default function AdminBannerManager({ banner }) {
           label="Desktop Banner"
           icon={Monitor}
           slot="desktop"
-          currentUrl={banner.desktop_image_url}
+          currentUrls={banner.desktop_image_urls}
         />
         <BannerSlot
           label="Mobile Banner"
           icon={Smartphone}
           slot="mobile"
-          currentUrl={banner.mobile_image_url}
+          currentUrls={banner.mobile_image_urls}
         />
       </div>
     </div>

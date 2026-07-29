@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/session";
-import { setBannerImage, resetBanner } from "@/lib/queries/banner";
+import { addBannerImage, resetBanner } from "@/lib/queries/banner";
 
 const API_BASE_URL = "https://api.trollzstore.com.ng";
 const API_SECRET_KEY = "trollz_api_secret_2024_xK9mP3qR";
@@ -49,7 +49,7 @@ export async function uploadBannerImageAction(formData) {
     }
 
     const url = await uploadToCloudinary(file);
-    await setBannerImage(slot, url);
+    await addBannerImage(slot, url);
 
     revalidatePath("/");
     revalidatePath("/admin/banner");

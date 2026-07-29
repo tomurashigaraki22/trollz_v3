@@ -21,7 +21,7 @@ import { updateReferralSettings } from "@/lib/queries/referrals";
 import { updateSellerApplicationStatus } from "@/lib/queries/sellerApplications";
 import { updateContactMessageStatus, deleteContactMessage } from "@/lib/queries/messages";
 import { createCoupon, updateCoupon, deleteCoupon, setCouponActive } from "@/lib/queries/coupons";
-import { sendEmailCampaign } from "@/lib/mail/campaigns";
+import { sendEmailCampaign, sendTestEmailCampaign } from "@/lib/mail/campaigns";
 
 export async function adminLoginAction(email, password) {
   const user = await findUserByEmail(email);
@@ -212,5 +212,29 @@ export async function sendEmailCampaignAction(campaign) {
     return { ok: true, ...result };
   } catch (error) {
     return { ok: false, error: error.message || "Could not send email campaign." };
+  }
+}
+
+export async function sendTestEmailCampaignAction(campaign) {
+  await requireAdmin();
+  const email = String(campaign.testEmail || "").trim();
+  const subject = String(campaign.subject || "").trim();
+  const body = String(campaign.body || "").trim();
+  if (!email || !email.includes("@")) return { ok: false, error: "Enter a valid test email." };
+  if (!subject) return { ok: false, error: "Enter an email subject." };
+  if (!body) return { ok: false, error: "Enter the email message." };
+
+  try {
+    const result = await sendTestEmailCampaign({
+      email,
+      templateId: campaign.templateId || "announcement",
+      subject,
+      body,
+      ctaLabel: campaign.ctaLabel || "",
+      ctaUrl: campaign.ctaUrl || "",
+    });
+    return { ok: true, ...result };
+  } catch (error) {
+    return { ok: false, error: error.message || "Could not send test email." };
   }
 }

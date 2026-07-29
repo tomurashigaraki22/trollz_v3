@@ -11,6 +11,10 @@
   "dependencies": {
     "@hugeicons/core-free-icons": "^4.1.4",
     "@hugeicons/react": "^1.1.6",
+    "@watchupltd/browser": "^0.2.1",
+    "@watchupltd/nextjs": "^0.2.1",
+    "@watchupltd/node": "^0.2.1",
+    "@watchupltd/react": "^0.2.2",
     "bcryptjs": "^3.0.3",
     "iron-session": "^8.0.4",
     "lucide-react": "^1.24.0",
