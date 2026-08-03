@@ -10,6 +10,7 @@ import { formatNaira } from "@/lib/mock/data";
 import { useCart } from "../cart/CartProvider";
 import { useWishlist } from "../wishlist/WishlistProvider";
 import { useCompare } from "../compare/CompareProvider";
+import { qaImg } from "@/lib/debugImages";
 
 export default function ProductCard({ product }) {
   const { addItem } = useCart();
@@ -54,7 +55,7 @@ export default function ProductCard({ product }) {
       >
         {image ? (
           <Image
-            src={image}
+            src={qaImg(image)}
             alt={product.item}
             fill
             sizes="(max-width: 640px) 50vw, 25vw"

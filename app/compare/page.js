@@ -9,6 +9,7 @@ import Button from "../components/ui/Button";
 import PlaceholderImage from "../components/ui/PlaceholderImage";
 import { useCompare } from "../components/compare/CompareProvider";
 import { formatNaira } from "@/lib/mock/data";
+import { qaImg } from "@/lib/debugImages";
 
 export default function ComparePage() {
   const { products, productIds, toggle, clear } = useCompare();
@@ -56,7 +57,7 @@ export default function ComparePage() {
                     </button>
                     <div className="relative mb-3 aspect-square overflow-hidden rounded-lg bg-ink-50">
                       {product.images?.[0] ? (
-                        <Image src={product.images[0]} alt={product.item} fill className="object-cover" />
+                        <Image src={qaImg(product.images[0])} alt={product.item} fill className="object-cover" />
                       ) : (
                         <PlaceholderImage className="h-full w-full" />
                       )}

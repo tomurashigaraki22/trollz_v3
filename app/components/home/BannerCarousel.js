@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { qaImg } from "@/lib/debugImages";
 
 export default function BannerCarousel({ images, alt, className = "", imageClassName = "" }) {
   const cleanImages = (images ?? []).filter(Boolean);
@@ -21,7 +22,7 @@ export default function BannerCarousel({ images, alt, className = "", imageClass
       {cleanImages.map((image, index) => (
         <img
           key={`${image}-${index}`}
-          src={image}
+          src={qaImg(image)}
           alt={alt}
           className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${
             index === activeIndex ? "opacity-100" : "opacity-0"

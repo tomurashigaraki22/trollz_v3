@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import PlaceholderImage from "../ui/PlaceholderImage";
+import { qaImg } from "@/lib/debugImages";
 
 const TONES = [
   "from-ink-100 to-ink-200",
@@ -21,7 +22,7 @@ export default function ProductGallery({ name, images = [] }) {
       <div className="relative aspect-square overflow-hidden rounded-2xl border border-ink-100">
         {hasImages ? (
           <Image
-            src={images[active] ?? images[0]}
+            src={qaImg(images[active] ?? images[0])}
             alt={name}
             fill
             sizes="(max-width: 1024px) 100vw, 50vw"
@@ -49,7 +50,7 @@ export default function ProductGallery({ name, images = [] }) {
               }`}
             >
               {hasImages ? (
-                <Image src={thumb} alt="" fill sizes="120px" className="object-cover" />
+                <Image src={qaImg(thumb)} alt="" fill sizes="120px" className="object-cover" />
               ) : (
                 <PlaceholderImage className="h-full w-full" tone={thumb} iconClassName="h-6 w-6" />
               )}

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { updateProductRequestAction } from "@/app/actions/productRequests";
+import { qaImg } from "@/lib/debugImages";
 
 const STATUSES = ["new", "reviewing", "sourcing", "found", "unavailable", "closed"];
 
@@ -25,7 +26,7 @@ export default function ProductRequestsManager({ requests }) {
                 <div className="flex gap-3">
                   {request.image_url && (
                     <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-ink-100">
-                      <Image src={request.image_url} alt={request.product_name} fill className="object-cover" />
+                      <Image src={qaImg(request.image_url)} alt={request.product_name} fill className="object-cover" />
                     </div>
                   )}
                   <div>

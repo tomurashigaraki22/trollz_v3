@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Upload, RotateCcw, Monitor, Smartphone } from "lucide-react";
 import Button from "../ui/Button";
 import { uploadBannerImageAction, resetBannerAction } from "@/app/actions/banner";
+import { qaImg } from "@/lib/debugImages";
 
 function BannerSlot({ label, icon: Icon, currentUrls = [], slot, onUploaded }) {
   const inputRef = useRef(null);
@@ -63,7 +64,7 @@ function BannerSlot({ label, icon: Icon, currentUrls = [], slot, onUploaded }) {
             {previewUrls.slice(0, 4).map((url, index) => (
               <img
                 key={`${url}-${index}`}
-                src={url}
+                src={qaImg(url)}
                 alt={`${label} slide ${index + 1}`}
                 className="h-full min-h-0 w-full rounded-lg object-cover"
               />

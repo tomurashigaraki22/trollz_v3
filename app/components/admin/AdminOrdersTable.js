@@ -6,6 +6,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import { formatNaira } from "@/lib/mock/data";
 import { ORDER_STATUS_STYLES, ORDER_STATUSES } from "@/lib/orderStatus";
 import { updateOrderStatusAction } from "@/app/actions/admin";
+import { qaImg } from "@/lib/debugImages";
 
 function parseImage(value) {
   if (!value) return "";
@@ -152,7 +153,7 @@ export default function AdminOrdersTable({ orders }) {
                                   <div key={item.id} className="flex gap-3 rounded-xl border border-ink-100 p-3">
                                     <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-ink-100">
                                       {image ? (
-                                        <img src={image} alt="" className="h-full w-full object-cover" />
+                                        <img src={qaImg(image)} alt="" className="h-full w-full object-cover" />
                                       ) : null}
                                     </div>
                                     <div className="min-w-0 flex-1">
