@@ -17,6 +17,13 @@ const ATTRIBUTE_LABELS = {
   skinType: "Skin Type",
   material: "Material",
   warranty: "Warranty",
+  model: "Model",
+  processor: "Processor",
+  screenSize: "Screen Size",
+  expiryDate: "Expiry Date",
+  weightVolume: "Weight / Volume",
+  volume: "Volume",
+  dimensions: "Dimensions",
 };
 
 function displayValue(value) {
@@ -38,8 +45,10 @@ export default function ProductPurchasePanel({ product }) {
   const [added, setAdded] = useState(false);
 
   const inStock = product.qty > 0;
-  const hasSizes = product.sizeOptions?.length > 1;
-  const hasColors = product.colorOptions?.length > 1;
+  const sizeOptions = (product.sizeOptions ?? []).filter((option) => option && option !== "Standard");
+  const colorOptions = (product.colorOptions ?? []).filter((option) => option && option !== "Default");
+  const hasSizes = sizeOptions.length > 0;
+  const hasColors = colorOptions.length > 0;
   const specs = Object.entries(product.attributes ?? {})
     .map(([key, value]) => [ATTRIBUTE_LABELS[key] ?? key.replace(/_/g, " "), displayValue(value)])
     .filter(([, value]) => value);
@@ -57,8 +66,8 @@ export default function ProductPurchasePanel({ product }) {
     addItem({
       productId: product.id,
       qty,
-      size: size || product.sizeOptions?.[0],
-      color: color || product.colorOptions?.[0],
+      size: size || sizeOptions[0] || product.sizeOptions?.[0],
+      color: color || colorOptions[0] || product.colorOptions?.[0],
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
@@ -94,7 +103,7 @@ export default function ProductPurchasePanel({ product }) {
             <option value="" disabled>
               Select size
             </option>
-            {product.sizeOptions.map((option) => (
+            {sizeOptions.map((option) => (
               <option key={option} value={option}>
                 {option}
               </option>
@@ -117,7 +126,7 @@ export default function ProductPurchasePanel({ product }) {
             <option value="" disabled>
               Select color
             </option>
-            {product.colorOptions.map((option) => (
+            {colorOptions.map((option) => (
               <option key={option} value={option}>
                 {option}
               </option>
