@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Button from "../ui/Button";
 import { getCategoryFields, resolveFieldOptions } from "@/lib/categoryFields";
+import { uploadAdminProductImagesAction } from "@/app/actions/admin";
 
 const emptyForm = {
   item: "",
@@ -121,6 +122,9 @@ export default function ProductForm({ product, categories, onSubmit, submitLabel
     colors: product?.colorOptions ?? parseJsonArray(product?.color_options),
     sizes: product?.sizeOptions ?? parseJsonArray(product?.size_options),
   }));
+  const [imageUrls, setImageUrls] = useState(() => parseJsonArray(product?.img ?? product?.images));
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState("");
 
   const categoryFields = useMemo(
     () => (form.category ? getCategoryFields(form.category) : []),
@@ -139,6 +143,24 @@ export default function ProductForm({ product, categories, onSubmit, submitLabel
     setAttributeValues((current) => ({ ...current, [key]: value }));
   }
 
+  async function handleImages(event) {
+    const files = Array.from(event.target.files || []).slice(0, 8 - imageUrls.length);
+    if (!files.length) return;
+    setUploading(true);
+    setError("");
+    try {
+      const formData = new FormData();
+      files.forEach((file) => formData.append("files", file));
+      const urls = await uploadAdminProductImagesAction(formData);
+      setImageUrls((current) => [...current, ...urls].slice(0, 8));
+    } catch (uploadError) {
+      setError(uploadError.message || "Could not upload product image.");
+    } finally {
+      setUploading(false);
+      event.target.value = "";
+    }
+  }
+
   function handleSubmit(event) {
     event.preventDefault();
     const otherAttributes = Object.fromEntries(
@@ -153,6 +175,7 @@ export default function ProductForm({ product, categories, onSubmit, submitLabel
       discount: Number(form.discount) || 0,
       qty: Number(form.qty) || 0,
       description: form.description,
+      img: JSON.stringify(imageUrls),
       sizeOptions: attributeValues.sizes ?? [],
       colorOptions: attributeValues.colors ?? [],
       attributes: otherAttributes,
@@ -266,6 +289,15 @@ export default function ProductForm({ product, categories, onSubmit, submitLabel
           />
         </Field>
       </div>
+
+      <div className="sm:col-span-2">
+        <Field label="Product Images (up to 8)">
+          <input type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple onChange={handleImages} disabled={uploading || imageUrls.length >= 8} />
+          {uploading && <p className="mt-2 text-sm text-ink-500">Uploading images...</p>}
+          {imageUrls.length > 0 && <div className="mt-3 grid grid-cols-4 gap-2">{imageUrls.map((url) => <img key={url} src={url} alt="" className="aspect-square rounded-lg object-cover" />)}</div>}
+        </Field>
+      </div>
+      {error && <p className="sm:col-span-2 text-sm text-danger">{error}</p>}
 
       <div className="sm:col-span-2">
         <Button type="submit">{submitLabel ?? (product ? "Save Changes" : "Add Product")}</Button>
