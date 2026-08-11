@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Minus, Plus, Trash2 } from "lucide-react";
-import PlaceholderImage from "../ui/PlaceholderImage";
+import { qaImg } from "@/lib/debugImages";
 import { formatNaira } from "@/lib/mock/data";
 import { useCart } from "./CartProvider";
 
@@ -15,7 +15,11 @@ export default function CartLineItem({ line }) {
         href={`/product/${line.product.id}`}
         className="h-24 w-24 shrink-0 overflow-hidden rounded-xl"
       >
-        <PlaceholderImage className="h-full w-full" />
+        {line.product.images?.[0] ? (
+          <img src={qaImg(line.product.images[0])} alt={line.product.item} className="h-full w-full object-cover" />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-ink-50 text-xs text-ink-400">No image</div>
+        )}
       </Link>
 
       <div className="flex flex-1 flex-col justify-between">

@@ -1,11 +1,19 @@
 "use client";
 
+import { useEffect } from "react";
 import { CheckCircle2 } from "lucide-react";
 import Section from "../ui/Section";
 import Button from "../ui/Button";
 import { formatNaira } from "@/lib/mock/data";
+import { useCart } from "../cart/CartProvider";
 
 export default function OrderConfirmation({ tracking, total, items }) {
+  const { clearCart } = useCart();
+
+  useEffect(() => {
+    if (tracking) clearCart();
+  }, [tracking, clearCart]);
+
   if (!tracking) {
     return (
       <Section>

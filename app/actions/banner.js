@@ -23,7 +23,7 @@ async function uploadToCloudinary(file) {
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok || !data.url) {
-    throw new Error(data.error || data.message || "Could not upload banner image.");
+    throw new Error(data.error || data.message || `Banner upload failed (${response.status}).`);
   }
   return data.url;
 }
