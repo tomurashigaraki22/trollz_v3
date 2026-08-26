@@ -4,10 +4,12 @@ import Link from "next/link";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { qaImg } from "@/lib/debugImages";
 import { formatNaira } from "@/lib/mock/data";
+import { formatLineVariants } from "@/lib/productOptions";
 import { useCart } from "./CartProvider";
 
 export default function CartLineItem({ line }) {
   const { updateQty, removeItem } = useCart();
+  const variantSummary = formatLineVariants(line);
 
   return (
     <div className="flex gap-4 border-b border-ink-100 py-5 last:border-b-0">
@@ -31,13 +33,7 @@ export default function CartLineItem({ line }) {
             >
               {line.product.item}
             </Link>
-            <p className="mt-1 text-xs text-ink-500">
-              {line.size && line.size !== "Standard" ? `Size: ${line.size}` : ""}
-              {line.size && line.size !== "Standard" && line.color && line.color !== "Default"
-                ? " · "
-                : ""}
-              {line.color && line.color !== "Default" ? `Color: ${line.color}` : ""}
-            </p>
+            {variantSummary && <p className="mt-1 text-xs text-ink-500">{variantSummary}</p>}
           </div>
           <button
             type="button"

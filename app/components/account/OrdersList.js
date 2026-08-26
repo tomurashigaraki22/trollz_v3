@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Card from "../ui/Card";
 import Button from "../ui/Button";
 import { formatNaira } from "@/lib/mock/data";
+import { formatOptionMap } from "@/lib/productOptions";
 import { ORDER_STATUS_STYLES, CANCELLABLE_STATUSES } from "@/lib/orderStatus";
 import { cancelOrderAction } from "@/app/actions/orders";
 
@@ -60,6 +61,15 @@ export default function OrdersList({ orders }) {
                   <div key={item.id} className="flex items-center justify-between text-sm">
                     <span className="text-ink-700">
                       {item.product_name} × {item.quantity}
+                      {(item.size || item.color || item.selected_options) && (
+                        <span className="block text-xs text-ink-500">
+                          {item.size ? `Size: ${item.size}` : ""}
+                          {item.size && item.color ? " · " : ""}
+                          {item.color ? `Color: ${item.color}` : ""}
+                          {item.selected_options && (item.size || item.color) ? " · " : ""}
+                          {formatOptionMap(item.selected_options)}
+                        </span>
+                      )}
                     </span>
                     <span className="text-ink-500">{formatNaira(item.subtotal)}</span>
                   </div>

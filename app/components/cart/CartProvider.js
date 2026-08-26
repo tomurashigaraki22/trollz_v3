@@ -17,6 +17,7 @@ import {
   clearCartAction,
   mergeGuestCartAction,
 } from "@/app/actions/cart";
+import { normalizeOptionMap } from "@/lib/productOptions";
 
 const CART_KEY = "trollz_mock_cart";
 const SHIPPING_FEE = 2500;
@@ -39,8 +40,8 @@ function writeGuestCart(items) {
   window.localStorage.setItem(CART_KEY, JSON.stringify(items));
 }
 
-function makeLineId(productId, size, color) {
-  return `${productId}::${size ?? ""}::${color ?? ""}`;
+function makeLineId(productId, size, color, options) {
+  return `${productId}::${size ?? ""}::${color ?? ""}::${JSON.stringify(normalizeOptionMap(options))}`;
 }
 
 export function CartProvider({ children }) {
@@ -85,7 +86,6 @@ export function CartProvider({ children }) {
   useEffect(() => {
     // Syncs local state with the real product data from /api/products (an
     // external system) whenever the cart's product ids change.
-    /* eslint-disable react-hooks/set-state-in-effect */
     if (uniqueProductIds.length === 0) {
       setProductsById({});
       return;
@@ -107,22 +107,22 @@ export function CartProvider({ children }) {
     return () => {
       cancelled = true;
     };
-    /* eslint-enable react-hooks/set-state-in-effect */
   }, [uniqueProductIds]);
 
   const addItem = useCallback(
-    async ({ productId, qty = 1, size, color }) => {
+    async ({ productId, qty = 1, size, color, options = {} }) => {
       if (isAuthenticated) {
-        await addToCartAction({ productId, qty, size, color });
+        await addToCartAction({ productId, qty, size, color, options });
         await refreshServerCart();
         return;
       }
-      const lineId = makeLineId(productId, size, color);
+      const normalizedOptions = normalizeOptionMap(options);
+      const lineId = makeLineId(productId, size, color, normalizedOptions);
       const existing = readGuestCart();
       const match = existing.find((item) => item.lineId === lineId);
       const nextItems = match
         ? existing.map((item) => (item.lineId === lineId ? { ...item, qty: item.qty + qty } : item))
-        : [...existing, { lineId, productId, qty, size, color }];
+        : [...existing, { lineId, productId, qty, size, color, options: normalizedOptions }];
       writeGuestCart(nextItems);
       setItems(nextItems);
     },

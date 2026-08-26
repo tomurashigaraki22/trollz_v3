@@ -2,6 +2,7 @@
 
 import { getCurrentUser } from "@/lib/session";
 import * as cartQueries from "@/lib/queries/cart";
+import { parseOptionMap } from "@/lib/productOptions";
 
 export async function getCartAction() {
   const user = await getCurrentUser();
@@ -14,13 +15,14 @@ export async function getCartAction() {
     qty: row.qty,
     size: row.size || undefined,
     color: row.color || undefined,
+    options: parseOptionMap(row.selected_options),
   }));
 }
 
-export async function addToCartAction({ productId, qty, size, color }) {
+export async function addToCartAction({ productId, qty, size, color, options }) {
   const user = await getCurrentUser();
   if (!user) return { ok: false, error: "Not signed in." };
-  await cartQueries.addToCart(user.id, { productId, qty, size, color });
+  await cartQueries.addToCart(user.id, { productId, qty, size, color, options });
   return { ok: true };
 }
 

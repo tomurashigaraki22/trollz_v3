@@ -7,6 +7,7 @@ import Button from "../ui/Button";
 import { useCart } from "../cart/CartProvider";
 import { useWishlist } from "../wishlist/WishlistProvider";
 import { useCompare } from "../compare/CompareProvider";
+import { getCategoryFields } from "@/lib/categoryFields";
 
 const ATTRIBUTE_LABELS = {
   brand: "Brand",
@@ -26,6 +27,8 @@ const ATTRIBUTE_LABELS = {
   dimensions: "Dimensions",
 };
 
+const SELECTABLE_ATTRIBUTE_KEYS = new Set(["gender", "storage", "ram", "condition", "skinType"]);
+
 function displayValue(value) {
   if (Array.isArray(value)) return value.filter(Boolean).join(", ");
   return String(value ?? "").trim();
@@ -41,6 +44,7 @@ export default function ProductPurchasePanel({ product }) {
   const [qty, setQty] = useState(1);
   const [size, setSize] = useState("");
   const [color, setColor] = useState("");
+  const [selectedAttributes, setSelectedAttributes] = useState({});
   const [error, setError] = useState("");
   const [added, setAdded] = useState(false);
 
@@ -49,7 +53,36 @@ export default function ProductPurchasePanel({ product }) {
   const colorOptions = (product.colorOptions ?? []).filter((option) => option && option !== "Default");
   const hasSizes = sizeOptions.length > 0;
   const hasColors = colorOptions.length > 0;
+  const categorySelectableFields = getCategoryFields(product.category)
+    .filter((field) => field.type === "select" || field.type === "multiselect")
+    .filter((field) => !["sizes", "colors"].includes(field.key));
+  const configuredSelectableAttributes = categorySelectableFields
+    .map((field) => {
+      const rawValue = product.attributes?.[field.key];
+      const options = Array.isArray(rawValue)
+        ? rawValue.filter(Boolean).map(String)
+        : rawValue == null || String(rawValue).trim() === ""
+          ? []
+          : [String(rawValue).trim()];
+      return { key: field.key, label: field.label, options };
+    })
+    .filter(({ options }) => options.length > 0);
+  const configuredKeys = new Set(configuredSelectableAttributes.map(({ key }) => key));
+  const additionalSelectableAttributes = Object.entries(product.attributes ?? {})
+    .filter(([key, value]) => {
+      if (configuredKeys.has(key) || ["sizes", "colors"].includes(key)) return false;
+      return SELECTABLE_ATTRIBUTE_KEYS.has(key) || (Array.isArray(value) && value.length > 1);
+    })
+    .map(([key, value]) => ({
+      key,
+      label: ATTRIBUTE_LABELS[key] ?? key.replace(/_/g, " "),
+      options: Array.isArray(value) ? value.filter(Boolean).map(String) : [String(value).trim()],
+    }))
+    .filter(({ options }) => options.length > 0);
+  const selectableAttributes = [...configuredSelectableAttributes, ...additionalSelectableAttributes];
+  const selectableKeys = new Set(selectableAttributes.map(({ key }) => key));
   const specs = Object.entries(product.attributes ?? {})
+    .filter(([key]) => !selectableKeys.has(key))
     .map(([key, value]) => [ATTRIBUTE_LABELS[key] ?? key.replace(/_/g, " "), displayValue(value)])
     .filter(([, value]) => value);
 
@@ -62,12 +95,23 @@ export default function ProductPurchasePanel({ product }) {
       setError("Please select a color.");
       return;
     }
+    const selectedOptions = Object.fromEntries(
+      selectableAttributes.map(({ key, options }) => [key, selectedAttributes[key] || options[0]])
+    );
+    const missingAttribute = selectableAttributes.find(
+      ({ key, options }) => options.length > 1 && !selectedAttributes[key]
+    );
+    if (missingAttribute) {
+      setError(`Please select ${missingAttribute.label.toLowerCase()}.`);
+      return;
+    }
     setError("");
     addItem({
       productId: product.id,
       qty,
       size: size || sizeOptions[0] || product.sizeOptions?.[0],
       color: color || colorOptions[0] || product.colorOptions?.[0],
+      options: selectedOptions,
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
@@ -134,6 +178,34 @@ export default function ProductPurchasePanel({ product }) {
           </select>
         </div>
       )}
+
+      {selectableAttributes.map(({ key, label, options }) => (
+        <div key={key}>
+          <label htmlFor={`attribute-${key}`} className="text-sm font-medium text-ink-800">
+            {label}
+          </label>
+          <select
+            id={`attribute-${key}`}
+            value={selectedAttributes[key] ?? (options.length === 1 ? options[0] : "")}
+            onChange={(event) => {
+              setSelectedAttributes((current) => ({ ...current, [key]: event.target.value }));
+              setError("");
+            }}
+            className="mt-2 block w-full rounded-lg border border-ink-200 px-3 py-2.5 text-sm focus:border-brand-500 focus:outline-none"
+          >
+            {options.length > 1 && (
+              <option value="" disabled>
+                Select {label.toLowerCase()}
+              </option>
+            )}
+            {options.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        </div>
+      ))}
 
       <div>
         <span className="text-sm font-medium text-ink-800">Quantity</span>

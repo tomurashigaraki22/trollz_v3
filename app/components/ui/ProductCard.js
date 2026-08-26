@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { Heart, ShoppingCart, Check, GitCompare } from "lucide-react";
 import PlaceholderImage from "./PlaceholderImage";
 import FlashCountdownBadge from "./FlashCountdownBadge";
@@ -16,15 +17,26 @@ export default function ProductCard({ product }) {
   const { addItem } = useCart();
   const { toggle, isWishlisted } = useWishlist();
   const { toggle: toggleCompare, isCompared } = useCompare();
+  const router = useRouter();
   const [added, setAdded] = useState(false);
   const wishlisted = isWishlisted(product.id);
   const compared = isCompared(product.id);
 
   const image = product.images?.[0];
   const showOriginalPrice = product.originalPrice > product.price;
+  const hasSelectableOptions =
+    (product.sizeOptions ?? []).filter((option) => option && option !== "Standard").length > 1 ||
+    (product.colorOptions ?? []).filter((option) => option && option !== "Default").length > 1 ||
+    Object.values(product.attributes ?? {}).some((value) => Array.isArray(value) && value.length > 1);
 
-  function handleAddToCart() {
+  function handleAddToCart(event) {
+    event.preventDefault();
+    event.stopPropagation();
     if (product.qty <= 0) return;
+    if (hasSelectableOptions) {
+      router.push(`/product/${product.id}`);
+      return;
+    }
     addItem({
       productId: product.id,
       qty: 1,
@@ -121,7 +133,7 @@ export default function ProductCard({ product }) {
           </div>
           <button
             type="button"
-            aria-label="Add to cart"
+            aria-label={hasSelectableOptions ? "Choose product options" : "Add to cart"}
             onClick={handleAddToCart}
             disabled={product.qty <= 0}
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ink-900 text-white transition-colors hover:bg-brand-500 disabled:opacity-40"

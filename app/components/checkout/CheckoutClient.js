@@ -8,6 +8,7 @@ import Card from "../ui/Card";
 import Button from "../ui/Button";
 import AddressForm from "../account/AddressForm";
 import { formatNaira } from "@/lib/mock/data";
+import { formatLineVariants } from "@/lib/productOptions";
 import { useCart } from "../cart/CartProvider";
 import { addAddressAction } from "@/app/actions/account";
 import {
@@ -67,6 +68,7 @@ export default function CheckoutClient({ user, addresses, creditBalance = 0, cre
         price: line.unitPrice,
         size: line.size,
         color: line.color,
+        options: line.options,
       })),
     [lines]
   );
@@ -328,13 +330,9 @@ export default function CheckoutClient({ user, addresses, creditBalance = 0, cre
                     <span className="font-medium text-ink-900">
                       {line.product.item} x {line.qty}
                     </span>
-                    {(line.size || line.color) && (
+                    {formatLineVariants(line, " | ") && (
                       <span className="mt-0.5 block text-xs text-ink-500">
-                        {line.size && line.size !== "Standard" ? `Size: ${line.size}` : ""}
-                        {line.size && line.size !== "Standard" && line.color && line.color !== "Default"
-                          ? " | "
-                          : ""}
-                        {line.color && line.color !== "Default" ? `Color: ${line.color}` : ""}
+                        {formatLineVariants(line, " | ")}
                       </span>
                     )}
                   </span>
