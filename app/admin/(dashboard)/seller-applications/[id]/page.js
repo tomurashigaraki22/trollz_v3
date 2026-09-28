@@ -157,7 +157,8 @@ export default async function SellerApplicationDetailPage({ params }) {
 
       <div className="rounded-2xl border border-ink-100 bg-white p-6 text-sm text-ink-500">
         Agreement accepted: {application.agreement_accepted ? "Yes" : "No"} — signed as &quot;
-        {application.signature_name}&quot; on {new Date(application.submitted_at).toLocaleString()}.
+        {application.signature_name || "—"}&quot; on {new Date(application.agreement_accepted_at || application.submitted_at).toLocaleString()}.
+        {application.agreement_version && ` Agreement version: ${application.agreement_version}.`}
       </div>
     </div>
   );

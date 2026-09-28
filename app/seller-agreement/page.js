@@ -137,6 +137,9 @@ export default function SellerAgreementPage() {
         title="Seller Agreement"
         description="The terms every seller agrees to when listing and selling on Trollz Store, covering commissions, payouts, returns, prohibited products, service levels, and more."
       />
+      <div className="mx-auto -mt-6 max-w-4xl px-6 text-xs text-ink-400 sm:px-8">
+        Agreement version 2026-09-28 · Effective 28 September 2026
+      </div>
       <Section>
         <div className="mx-auto max-w-4xl space-y-10">
           {sections.map((section) => (
