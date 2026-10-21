@@ -27,6 +27,11 @@ export const metadata = {
   },
   description: SITE_DESCRIPTION,
   keywords: ["Trollz Store", "General merchandise", "Nigeria online store"],
+  icons: {
+    icon: [{ url: "/icon.png", type: "image/png" }],
+    shortcut: "/icon.png",
+    apple: "/apple-icon.png",
+  },
   alternates: {
     canonical: SITE_URL,
   },

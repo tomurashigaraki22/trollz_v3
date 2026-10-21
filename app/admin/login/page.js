@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { ShieldCheck } from "lucide-react";
 import { adminLoginAction } from "@/app/actions/admin";
 
@@ -31,6 +32,15 @@ export default function AdminLoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-ink-900 px-4">
       <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-ink-800 p-8 shadow-xl">
+        <div className="mb-4 inline-flex rounded-xl bg-white px-3 py-2">
+          <Image
+            src="/trollz-logo.png"
+            alt="TrollzStore"
+            width={900}
+            height={354}
+            className="h-10 w-auto"
+          />
+        </div>
         <div className="flex items-center gap-2 text-white">
           <ShieldCheck className="h-6 w-6 text-brand-500" />
           <span className="text-lg font-bold">TrollzStore Admin</span>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
@@ -57,9 +58,16 @@ export default function AdminSidebar({ admin }) {
   return (
     <aside className="flex h-screen w-64 shrink-0 flex-col overflow-hidden border-r border-white/10 bg-ink-900 text-ink-300">
       <div className="border-b border-white/10 px-5 py-5">
-        <span className="text-lg font-extrabold tracking-tight text-white">
-          Trollz<span className="text-brand-500">Admin</span>
-        </span>
+        <div className="inline-flex rounded-xl bg-white px-2.5 py-1.5">
+          <Image
+            src="/trollz-logo.png"
+            alt="TrollzStore"
+            width={900}
+            height={354}
+            className="h-8 w-auto"
+          />
+        </div>
+        <p className="mt-2 text-xs font-semibold text-brand-500">Admin console</p>
         <p className="mt-1 truncate text-xs text-ink-500">{admin?.email}</p>
       </div>
 

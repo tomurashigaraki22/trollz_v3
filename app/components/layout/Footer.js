@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import Container from "../ui/Container";
 import { InstagramIcon, TikTokIcon, XIcon } from "../ui/SocialIcons";
 
@@ -45,8 +46,18 @@ export default function Footer() {
       <Container className="py-14">
         <div className="grid grid-cols-2 gap-10 sm:grid-cols-2 lg:grid-cols-5">
           <div className="col-span-2">
-            <Link href="/" className="text-xl font-extrabold tracking-tight text-white">
-              Trollz<span className="text-brand-500">Store</span>
+            <Link
+              href="/"
+              aria-label="TrollzStore home"
+              className="inline-flex rounded-xl bg-white px-3 py-2"
+            >
+              <Image
+                src="/trollz-logo.png"
+                alt="TrollzStore"
+                width={900}
+                height={354}
+                className="h-10 w-auto sm:h-12"
+              />
             </Link>
             <p className="mt-3 max-w-xs text-sm leading-6 text-ink-400">
               Your everyday general merchandise store — authentic products,

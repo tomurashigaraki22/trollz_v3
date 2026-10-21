@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Menu, X, Search, User, Heart, ShoppingCart, LogOut, PackageSearch, GitCompare } from "lucide-react";
 import Container from "../ui/Container";
@@ -39,8 +40,15 @@ export default function Header() {
           >
             {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
-          <Link href="/" className="text-xl font-extrabold tracking-tight text-ink-900">
-            Trollz<span className="text-brand-500">Store</span>
+          <Link href="/" aria-label="TrollzStore home" className="shrink-0">
+            <Image
+              src="/trollz-logo.png"
+              alt="TrollzStore"
+              width={900}
+              height={354}
+              priority
+              className="h-9 w-auto sm:h-11"
+            />
           </Link>
         </div>
 
