@@ -43,16 +43,16 @@ function DefaultHero({ className = "" }) {
 
 export default async function Hero() {
   const banner = await getBanner();
-  const desktopImages = banner.desktop_image_urls ?? [];
-  const mobileImages = banner.mobile_image_urls ?? [];
-  const hasCustomBanner = desktopImages.length > 0 || mobileImages.length > 0;
+  const desktopSlides = banner.desktop_slides ?? (banner.desktop_image_urls ?? []).map((url) => ({ type: "image", url }));
+  const mobileSlides = banner.mobile_slides ?? (banner.mobile_image_urls ?? []).map((url) => ({ type: "image", url }));
+  const hasCustomBanner = desktopSlides.length > 0 || mobileSlides.length > 0;
 
   if (hasCustomBanner) {
     return (
       <>
-        {mobileImages.length > 0 ? (
+        {mobileSlides.length > 0 ? (
           <BannerCarousel
-            images={mobileImages}
+            slides={mobileSlides}
             alt="Trollz Store mobile banner"
             className="aspect-[4/3] sm:hidden"
           />
@@ -60,9 +60,9 @@ export default async function Hero() {
           <DefaultHero className="sm:hidden" />
         )}
 
-        {desktopImages.length > 0 ? (
+        {desktopSlides.length > 0 ? (
           <BannerCarousel
-            images={desktopImages}
+            slides={desktopSlides}
             alt="Trollz Store desktop banner"
             className="hidden aspect-[1920/520] sm:block"
           />

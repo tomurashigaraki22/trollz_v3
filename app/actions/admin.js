@@ -23,6 +23,11 @@ import { updateContactMessageStatus, deleteContactMessage } from "@/lib/queries/
 import { createCoupon, updateCoupon, deleteCoupon, setCouponActive } from "@/lib/queries/coupons";
 import { sendEmailCampaign, sendTestEmailCampaign } from "@/lib/mail/campaigns";
 import { saveDeliveryZone, updateDeliveryZone } from "@/lib/queries/delivery";
+import {
+  PRODUCT_VIDEO_MAX_BYTES,
+  PRODUCT_VIDEO_MAX_DURATION_SECONDS,
+  formatMegabytes,
+} from "@/lib/mediaLimits";
 
 const API_BASE_URL = "https://api.trollzstore.com.ng";
 const API_SECRET_KEY = "trollz_api_secret_2024_xK9mP3qR";
@@ -45,6 +50,34 @@ export async function uploadAdminProductImagesAction(formData) {
     urls.push(data.url);
   }
   return urls;
+}
+
+export async function uploadAdminProductVideoAction(formData) {
+  await requireAdmin();
+  const file = formData.get("file");
+  if (!file || file.size === 0) throw new Error("No video uploaded.");
+  if (!['video/mp4', 'video/webm'].includes(file.type)) {
+    throw new Error("Use an MP4 or WebM video for reliable web playback.");
+  }
+  if (file.size > PRODUCT_VIDEO_MAX_BYTES) {
+    throw new Error(`Product video must be smaller than ${formatMegabytes(PRODUCT_VIDEO_MAX_BYTES)}.`);
+  }
+
+  const body = new FormData();
+  body.set("file", file);
+  body.set("folder", "trollz/products");
+  body.set("media_type", "video");
+  const response = await fetch(`${API_BASE_URL}/api/upload`, {
+    method: "POST",
+    headers: { "X-API-Key": API_SECRET_KEY },
+    body,
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || !data.url) throw new Error(data.error || "Could not upload product video.");
+  if (!Number.isFinite(Number(data.duration)) || Number(data.duration) <= 0 || Number(data.duration) > PRODUCT_VIDEO_MAX_DURATION_SECONDS) {
+    throw new Error(`Product video duration must be between 1 and ${PRODUCT_VIDEO_MAX_DURATION_SECONDS} seconds.`);
+  }
+  return data;
 }
 
 export async function adminLoginAction(email, password) {

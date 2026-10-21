@@ -3,7 +3,13 @@
 import { useMemo, useState } from "react";
 import Button from "../ui/Button";
 import { getCategoryFields, resolveFieldOptions } from "@/lib/categoryFields";
-import { uploadAdminProductImagesAction } from "@/app/actions/admin";
+import { uploadAdminProductImagesAction, uploadAdminProductVideoAction } from "@/app/actions/admin";
+import {
+  PRODUCT_VIDEO_ACCEPT,
+  PRODUCT_VIDEO_MAX_BYTES,
+  PRODUCT_VIDEO_MAX_DURATION_SECONDS,
+  formatMegabytes,
+} from "@/lib/mediaLimits";
 
 const emptyForm = {
   item: "",
@@ -24,6 +30,23 @@ function parseJsonArray(value) {
   } catch {
     return [];
   }
+}
+
+function readVideoDuration(file) {
+  return new Promise((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
+    const video = document.createElement("video");
+    video.preload = "metadata";
+    video.onloadedmetadata = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(Number(video.duration));
+    };
+    video.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("The video could not be read. Use an MP4 or WebM file."));
+    };
+    video.src = objectUrl;
+  });
 }
 
 function toFormValues(product) {
@@ -123,6 +146,15 @@ export default function ProductForm({ product, categories, onSubmit, submitLabel
     sizes: product?.sizeOptions ?? parseJsonArray(product?.size_options),
   }));
   const [imageUrls, setImageUrls] = useState(() => parseJsonArray(product?.img ?? product?.images));
+  const [video, setVideo] = useState(() => (
+    product?.videoUrl || product?.video_url
+      ? {
+          url: product.videoUrl || product.video_url,
+          duration: Number(product.videoDuration || product.video_duration || 0),
+          mime: product.videoMime || product.video_mime || "video/mp4",
+        }
+      : null
+  ));
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
 
@@ -161,6 +193,38 @@ export default function ProductForm({ product, categories, onSubmit, submitLabel
     }
   }
 
+  async function handleVideo(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setError("");
+    try {
+      if (!["video/mp4", "video/webm"].includes(file.type)) {
+        throw new Error("Use an MP4 or WebM video for reliable web playback.");
+      }
+      if (file.size > PRODUCT_VIDEO_MAX_BYTES) {
+        throw new Error(`Product video must be smaller than ${formatMegabytes(PRODUCT_VIDEO_MAX_BYTES)}.`);
+      }
+      const duration = await readVideoDuration(file);
+      if (!Number.isFinite(duration) || duration <= 0 || duration > PRODUCT_VIDEO_MAX_DURATION_SECONDS) {
+        throw new Error(`Product video duration must be between 1 and ${PRODUCT_VIDEO_MAX_DURATION_SECONDS} seconds.`);
+      }
+      const formData = new FormData();
+      formData.set("file", file);
+      const media = await uploadAdminProductVideoAction(formData);
+      setVideo({
+        url: media.url,
+        duration: Number(media.duration || duration),
+        mime: media.mime || file.type,
+      });
+    } catch (uploadError) {
+      setError(uploadError.message || "Could not upload product video.");
+    } finally {
+      setUploading(false);
+      event.target.value = "";
+    }
+  }
+
   function handleSubmit(event) {
     event.preventDefault();
     const otherAttributes = Object.fromEntries(
@@ -176,6 +240,9 @@ export default function ProductForm({ product, categories, onSubmit, submitLabel
       qty: Number(form.qty) || 0,
       description: form.description,
       img: JSON.stringify(imageUrls),
+      videoUrl: video?.url || null,
+      videoDuration: video?.duration || null,
+      videoMime: video?.mime || null,
       sizeOptions: attributeValues.sizes ?? [],
       colorOptions: attributeValues.colors ?? [],
       attributes: otherAttributes,
@@ -295,6 +362,24 @@ export default function ProductForm({ product, categories, onSubmit, submitLabel
           <input type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple onChange={handleImages} disabled={uploading || imageUrls.length >= 8} />
           {uploading && <p className="mt-2 text-sm text-ink-500">Uploading images...</p>}
           {imageUrls.length > 0 && <div className="mt-3 grid grid-cols-4 gap-2">{imageUrls.map((url) => <img key={url} src={url} alt="" className="aspect-square rounded-lg object-cover" />)}</div>}
+        </Field>
+      </div>
+
+      <div className="sm:col-span-2">
+        <Field label="Product Video (optional)">
+          <p className="mb-2 text-xs text-ink-500">
+            MP4 or WebM only, maximum {formatMegabytes(PRODUCT_VIDEO_MAX_BYTES)} and {PRODUCT_VIDEO_MAX_DURATION_SECONDS} seconds.
+          </p>
+          <input type="file" accept={PRODUCT_VIDEO_ACCEPT} onChange={handleVideo} disabled={uploading} />
+          {video && (
+            <div className="mt-3 overflow-hidden rounded-xl border border-ink-100">
+              <video src={video.url} controls playsInline preload="metadata" className="aspect-video w-full bg-black object-contain" />
+              <div className="flex items-center justify-between px-3 py-2 text-xs text-ink-500">
+                <span>{video.duration ? `${video.duration.toFixed(1)} seconds` : "Uploaded video"}</span>
+                <button type="button" onClick={() => setVideo(null)} className="font-semibold text-danger">Remove video</button>
+              </div>
+            </div>
+          )}
         </Field>
       </div>
       {error && <p className="sm:col-span-2 text-sm text-danger">{error}</p>}

@@ -133,7 +133,12 @@ export default async function ProductPage({ params }) {
 
       <Section>
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
-          <ProductGallery name={product.item} images={product.images} />
+          <ProductGallery
+            name={product.item}
+            images={product.images}
+            videoUrl={product.videoUrl}
+            videoMime={product.videoMime}
+          />
 
           <div>
             <span className="text-xs font-semibold tracking-wide text-brand-600 uppercase">
