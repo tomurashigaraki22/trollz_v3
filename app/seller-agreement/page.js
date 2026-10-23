@@ -124,7 +124,7 @@ const sections = [
     title: "Governing Law & Contact",
     body: [
       "This Agreement is governed by the laws of the Federal Republic of Nigeria.",
-      "Questions about this Agreement can be directed to the Trollz Store seller support team through the seller dashboard or the Contact page on trollzstore.com.ng.",
+      "Questions about this Agreement can be directed to the Trollz Store seller support team through the seller dashboard or the Contact page on trollzstore.com.",
     ],
   },
 ];
