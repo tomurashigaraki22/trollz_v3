@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ShoppingBag, Package, Users, Headset, ShieldCheck, Mail, Search, Zap, ArrowRight } from "lucide-react";
+import { redirect } from "next/navigation";
 import { formatNaira } from "@/lib/mock/data";
 import { ORDER_STATUS_STYLES } from "@/lib/orderStatus";
 import { getCurrentUser } from "@/lib/session";
@@ -35,6 +36,12 @@ export default async function AdminDashboardPage() {
     getProductRequests(),
     getFlashSaleProductsForAdmin(),
   ]);
+
+  // Layout and page segments can render concurrently. Guard here as well so
+  // an unauthenticated request never dereferences a missing admin session.
+  if (!admin || admin.role !== "Admin") {
+    redirect("/admin/login");
+  }
 
   const revenue = orders
     .filter((order) => order.order_status !== "cancelled")
