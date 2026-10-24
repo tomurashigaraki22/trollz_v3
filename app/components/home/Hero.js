@@ -54,7 +54,7 @@ export default async function Hero() {
           <BannerCarousel
             slides={mobileSlides}
             alt="Trollz Store mobile banner"
-            className="aspect-[4/3] sm:hidden"
+            className="aspect-[9/16] bg-ink-950 sm:hidden"
           />
         ) : (
           <DefaultHero className="sm:hidden" />
@@ -64,7 +64,7 @@ export default async function Hero() {
           <BannerCarousel
             slides={desktopSlides}
             alt="Trollz Store desktop banner"
-            className="hidden aspect-[1920/520] sm:block"
+            className="hidden aspect-[16/9] bg-ink-950 sm:block"
           />
         ) : (
           <DefaultHero className="hidden sm:block" />

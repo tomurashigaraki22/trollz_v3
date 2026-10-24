@@ -90,13 +90,13 @@ export default function BannerCarousel({ slides, images, alt, className = "", im
                 loop
                 playsInline
                 preload={isActive ? "metadata" : "none"}
-                className="h-full w-full object-cover"
+                className="h-full w-full object-contain"
               />
             ) : (
               <img
                 src={qaImg(slide.url)}
                 alt={alt}
-                className={`h-full w-full object-cover ${imageClassName}`}
+                className={`h-full w-full object-contain ${imageClassName}`}
                 fetchPriority={index === 0 ? "high" : "auto"}
               />
             )}

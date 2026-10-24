@@ -26,19 +26,19 @@ function roundPosition(value) {
   return Math.round(Math.min(95, Math.max(5, value)) * 10) / 10;
 }
 
-function SlideThumbnail({ slide, selected, onClick, onRemove, label }) {
+function SlideThumbnail({ slide, selected, onClick, onRemove, label, aspectClass }) {
   return (
     <div className={`relative overflow-hidden rounded-xl border ${selected ? "border-brand-500" : "border-ink-100"}`}>
-      <button type="button" onClick={onClick} className="block aspect-[16/7] w-full bg-ink-100 text-left">
+      <button type="button" onClick={onClick} className={`block ${aspectClass} w-full bg-ink-100 text-left`}>
         {slide.type === "video" ? (
           <div className="relative h-full w-full">
-            <video src={qaImg(slide.url)} muted playsInline preload="metadata" className="h-full w-full object-cover" />
+            <video src={qaImg(slide.url)} muted playsInline preload="metadata" className="h-full w-full object-contain" />
             <span className="absolute inset-0 flex items-center justify-center bg-black/20 text-white">
               <Play className="h-5 w-5 fill-current" />
             </span>
           </div>
         ) : (
-          <img src={qaImg(slide.url)} alt={`${label} slide`} className="h-full w-full object-cover" />
+          <img src={qaImg(slide.url)} alt={`${label} slide`} className="h-full w-full object-contain" />
         )}
       </button>
       <button
@@ -57,6 +57,7 @@ function SlideThumbnail({ slide, selected, onClick, onRemove, label }) {
 }
 
 function BannerSlot({ label, icon: Icon, currentSlides = [], slot }) {
+  const aspectClass = slot === "mobile" ? "aspect-[9/16]" : "aspect-[16/9]";
   const inputRef = useRef(null);
   const previewRef = useRef(null);
   const dragTargetRef = useRef(null);
@@ -187,7 +188,7 @@ function BannerSlot({ label, icon: Icon, currentSlides = [], slot }) {
         <Icon className="h-4 w-4" /> {label}
       </div>
       <p className="mt-1 text-xs text-ink-500">
-        Images up to 5MB. Videos must be MP4/WebM, up to 20MB and 15 seconds.
+        Use {slot === "mobile" ? "1080×1920 portrait" : "1920×1080 landscape"} artwork. Images up to 5MB. Videos must be MP4/WebM, up to 20MB and 15 seconds.
       </p>
 
       {slides.length > 0 ? (
@@ -204,11 +205,12 @@ function BannerSlot({ label, icon: Icon, currentSlides = [], slot }) {
                 setDraftButton(copyButton(slide.button));
               }}
               onRemove={() => handleRemove(slide)}
+              aspectClass={aspectClass}
             />
           ))}
         </div>
       ) : (
-        <div className="mt-4 flex aspect-[16/7] items-center justify-center rounded-xl border border-dashed border-ink-200 bg-ink-50 text-xs text-ink-400">
+        <div className={`mt-4 flex ${aspectClass} items-center justify-center rounded-xl border border-dashed border-ink-200 bg-ink-50 text-xs text-ink-400`}>
           Using default gradient
         </div>
       )}
@@ -240,7 +242,7 @@ function BannerSlot({ label, icon: Icon, currentSlides = [], slot }) {
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
             onPointerCancel={handlePointerUp}
-            className="relative mt-3 aspect-[16/7] touch-none overflow-hidden rounded-xl border border-ink-100 bg-ink-100"
+            className={`relative mt-3 ${aspectClass} touch-none overflow-hidden rounded-xl border border-ink-100 bg-ink-100`}
           >
             {selectedSlide.type === "video" ? (
               <video
@@ -248,10 +250,10 @@ function BannerSlot({ label, icon: Icon, currentSlides = [], slot }) {
                 controls
                 playsInline
                 preload="metadata"
-                className="h-full w-full object-cover"
+                className="h-full w-full object-contain"
               />
             ) : (
-              <img src={qaImg(selectedSlide.url)} alt={`${label} preview`} className="h-full w-full object-cover" />
+              <img src={qaImg(selectedSlide.url)} alt={`${label} preview`} className="h-full w-full object-contain" />
             )}
             <button
               type="button"
